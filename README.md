@@ -1,0 +1,1 @@
+Shogi useful library
