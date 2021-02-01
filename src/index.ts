@@ -71,3 +71,21 @@ export function toPrettierString(board: Board): string {
       }
     }, '');
 }
+
+export function selectPiece(
+  board: Board,
+  position: number | { x: number; y: number },
+): Piece {
+  if (typeof position === 'number') {
+    if (position < 0 || position > 80) {
+      throw new Error('selected Position is out of bounds');
+    }
+    return board[position];
+  }
+  const { x, y } = position;
+  if (x < 1 || x > 9 || y < 1 || y > 9) {
+    throw new Error('selected Position is out of bounds');
+  }
+  const index = 9 - x + (y - 1) * 9;
+  return board[index];
+}
