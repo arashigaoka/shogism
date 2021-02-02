@@ -1,6 +1,5 @@
 import {
   initSquare,
-  flip,
   toPrettierString,
   selectPiece,
   moveBoard,
@@ -8,17 +7,6 @@ import {
   initHands,
   initBoard,
 } from '../index';
-
-describe('flip', () => {
-  test('promote', () => {
-    const flippedPorn = flip('p');
-    expect(flippedPorn).toBe('P');
-  });
-  test('unpromote', () => {
-    const flippedPorn = flip('P');
-    expect(flippedPorn).toBe('p');
-  });
-});
 describe('squareList', () => {
   test('initialize squareList', () => {
     const sfenInput =
