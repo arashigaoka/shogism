@@ -1,4 +1,5 @@
 import { toPrettierString } from '../board';
+import { FinishTrigger } from '../kifu/types';
 import { parseKIF, parseKifMove } from '../parser/kifuParser';
 
 describe('parse move', () => {
@@ -63,5 +64,24 @@ LNSGKGSNL
     expect(data.moves.length).toBe(5);
     expect(data.boardList.length).toBe(6);
     expect(data.boardList[0].comment).toBe('start\nstart2');
+  });
+  test('parse kif with header', () => {
+    const data = parseKIF(`#KIF version=2.0 encoding=Shift_JIS
+# ---- Kifu for Windows V7 V7.08 棋譜ファイル ----
+開始日時：2014/10/12 14:46:51
+終了日時：2014/10/12 14:47:55
+手合割：平手　　
+先手：sente
+後手：gote
+手数----指手---------消費時間--
+   1 ７六歩(77)   ( 0:02/00:00:02)
+   2 ３四歩(33)   ( 0:05/00:00:05)
+   3 ２二角成(88) ( 0:06/00:00:08)
+   4 中断         ( 0:51/00:00:56)
+まで3手で中断
+`);
+    expect(data.header?.sente).toBe('sente');
+    expect(data.header?.gote).toBe('gote');
+    expect(data.finishTrigger).toBe(FinishTrigger['中断']);
   });
 });

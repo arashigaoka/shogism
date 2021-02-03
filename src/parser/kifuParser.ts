@@ -5,7 +5,7 @@ import {
   moveBoard,
 } from '../board';
 import { HorizontalMove, isHorizontalMove, Move, Y_AXIS } from '../board/types';
-import { Kifu } from '../kifu/types';
+import { FinishTrigger, Header, Kifu } from '../kifu/types';
 import { Piece, UPPERCASE_KIND } from '../piece';
 const KifToSfen = {
   歩: UPPERCASE_KIND.FU,
@@ -40,6 +40,10 @@ export function parseKifMove(
   move: string,
   prevMove: HorizontalMove | null,
 ): Move | Comment | null {
+  if (move.startsWith('*')) {
+    const comment = move.slice(1).trim();
+    return { comment };
+  }
   const horizontalMovePattern = /[１-９][一二三四五六七八九][歩香桂銀金角飛玉王と杏圭全馬竜龍]成?\(\d{2}/;
   const horizontalMove = move.match(horizontalMovePattern);
   if (horizontalMove) {
@@ -82,10 +86,6 @@ export function parseKifMove(
     const move = createVerticalMove({ toX, toY, piece });
     return move;
   }
-  if (move.startsWith('*')) {
-    const comment = move.slice(1).trim();
-    return { comment };
-  }
   return null;
 }
 
@@ -95,36 +95,80 @@ function convertZenToHan(str: string): string {
   );
 }
 
+function parseKifHeader(line: string): Header | undefined {
+  if (line.startsWith('先手')) {
+    const sente = line.slice(3);
+    return { sente };
+  } else if (line.startsWith('後手')) {
+    const gote = line.slice(3);
+    return { gote };
+  }
+  return undefined;
+}
+
 export function parseKIF(kifStr: string): Kifu {
   const lines = kifStr.replace(/\r\n?/g, '\n').split('\n');
   const moves = [] as Array<Move>;
   let prevMove = null as HorizontalMove | null;
   const board = initBoard();
-  const boardList = lines.reduce(
-    (acc, line) => {
-      const moveOrComment = parseKifMove(line, prevMove);
-      if (!moveOrComment) {
-        return acc;
-      }
-      const lastBoard = acc[acc.length - 1];
-      if (!isComment(moveOrComment)) {
-        if (isHorizontalMove(moveOrComment)) {
-          prevMove = moveOrComment;
-        } else {
-          prevMove = null;
+  let header = undefined as Header | undefined;
+  let finishTrigger = undefined as FinishTrigger | undefined;
+  const boardList = lines
+    .filter((line) => !line.startsWith('#'))
+    .reduce(
+      (acc, line) => {
+        if (isHeader(line)) {
+          const newHeader = parseKifHeader(line);
+          if (newHeader) {
+            header = { ...header, ...newHeader };
+          }
+          return acc;
         }
-        moves.push(moveOrComment);
-        const newBoard = moveBoard(lastBoard, moveOrComment);
-        return [...acc, newBoard];
-      } else {
-        const newComment = lastBoard.comment
-          ? [lastBoard.comment, moveOrComment.comment].join('\n')
-          : moveOrComment.comment;
-        const newBoard = { ...lastBoard, comment: newComment };
-        return [...acc.slice(0, acc.length - 1), newBoard];
-      }
-    },
-    [board],
-  );
-  return { boardList, moves };
+        // finishTrigger is written once only
+        if (!finishTrigger) {
+          const triggerIfMatch = getFinishTriggerIfMatch(line);
+          if (triggerIfMatch) {
+            finishTrigger = triggerIfMatch;
+          }
+        }
+        const moveOrComment = parseKifMove(line, prevMove);
+        if (!moveOrComment) {
+          return acc;
+        }
+        const lastBoard = acc[acc.length - 1];
+        if (!isComment(moveOrComment)) {
+          if (isHorizontalMove(moveOrComment)) {
+            prevMove = moveOrComment;
+          } else {
+            prevMove = null;
+          }
+          moves.push(moveOrComment);
+          const newBoard = moveBoard(lastBoard, moveOrComment);
+          return [...acc, newBoard];
+        } else {
+          const newComment = lastBoard.comment
+            ? [lastBoard.comment, moveOrComment.comment].join('\n')
+            : moveOrComment.comment;
+          const newBoard = { ...lastBoard, comment: newComment };
+          return [...acc.slice(0, acc.length - 1), newBoard];
+        }
+      },
+      [board],
+    );
+  return { header, boardList, moves, finishTrigger };
+}
+
+function isHeader(line: string): boolean {
+  return ['先手', '後手'].some((keyword) => line.startsWith(keyword));
+}
+
+function getFinishTriggerIfMatch(line: string): FinishTrigger | null {
+  let finishTrigger = null;
+  Object.values(FinishTrigger).forEach((trigger) => {
+    if (line.includes(trigger)) {
+      finishTrigger = trigger;
+      return;
+    }
+  });
+  return finishTrigger;
 }

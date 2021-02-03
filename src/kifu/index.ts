@@ -2,7 +2,7 @@ import { initBoard, moveBoard } from '../board';
 import { isMove, Move } from '../board/types';
 import { Kifu } from './types';
 
-export function initKifu(
+export function initKifuFromSfen(
   initialInfo?: {
     squareStr: string;
     turn: string;
