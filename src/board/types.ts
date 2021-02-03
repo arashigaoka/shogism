@@ -28,31 +28,39 @@ export function isSfenPointSelector(str: string): str is SfenPointSelector {
     Object.keys(Y_AXIS).includes(str.slice(1, 2))
   );
 }
-export type Move =
-  | `${SfenPointSelector}${SfenPointSelector}${SHOW_PROMOTE}`
-  | `${UPPERCASE_KIND_VALUE}*${SfenPointSelector}`;
-export function isMove(str: string): str is Move {
+export type HorizontalMove = `${SfenPointSelector}${SfenPointSelector}${SHOW_PROMOTE}`;
+export function isHorizontalMove(str: string): str is HorizontalMove {
+  if (str.length !== 4 && str.length !== 5) {
+    return false;
+  } else if (str.length === 4) {
+    return (
+      isSfenPointSelector(str.slice(0, 2)) &&
+      isSfenPointSelector(str.slice(2, 4))
+    );
+  } else {
+    return (
+      isSfenPointSelector(str.slice(0, 2)) &&
+      isSfenPointSelector(str.slice(2, 4)) &&
+      str.slice(4, 5) === '+'
+    );
+  }
+}
+export type VerticalMove = `${UPPERCASE_KIND_VALUE}*${SfenPointSelector}`;
+export function isVerticalMove(str: string): str is VerticalMove {
+  if (str.length !== 4) {
+    return false;
+  }
   if (str.includes('*')) {
     return (
       isUpperCaseKindValue(str.slice(0, 1)) &&
       isSfenPointSelector(str.slice(2, 4))
     );
-  } else {
-    if (str.length === 4) {
-      return (
-        isSfenPointSelector(str.slice(0, 2)) &&
-        isSfenPointSelector(str.slice(2, 4))
-      );
-    } else if (str.length === 5) {
-      return (
-        isSfenPointSelector(str.slice(0, 2)) &&
-        isSfenPointSelector(str.slice(2, 4)) &&
-        str.slice(4, 5) === '+'
-      );
-    } else {
-      return false;
-    }
   }
+  return false;
+}
+export type Move = HorizontalMove | VerticalMove;
+export function isMove(str: string): str is Move {
+  return isVerticalMove(str) || isHorizontalMove(str);
 }
 
 export type Hands = {

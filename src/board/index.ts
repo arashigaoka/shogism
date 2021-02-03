@@ -7,14 +7,20 @@ import {
   KIND_VALUE,
   LOWERCASE_KIND,
   Piece,
+  SHOW_PROMOTE,
   UPPERCASE_KIND,
+  UPPERCASE_KIND_VALUE,
 } from '../piece';
 import {
   Board,
   Hands,
+  HorizontalMove,
+  isHorizontalMove,
+  isVerticalMove,
   Move,
   SfenPointSelector,
   SquareList,
+  VerticalMove,
   X_AXIS,
   Y_AXIS,
 } from './types';
@@ -186,4 +192,49 @@ export function moveBoard(board: Board, move: Move): Board {
     }
     return draftBoard;
   });
+}
+
+export function createHorizontalMove({
+  fromX,
+  fromY,
+  toX,
+  toY,
+  promote = false,
+}: {
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+  promote?: boolean;
+}): HorizontalMove {
+  const from = `${fromX}${convertNumToAlphabet(fromY)}`;
+  const to = `${toX}${convertNumToAlphabet(toY)}`;
+  const suffix: SHOW_PROMOTE = promote ? '+' : '';
+  const move = `${from}${to}${suffix}`;
+  if (!isHorizontalMove(move)) {
+    throw Error(`${move} is not horizontalmove`);
+  } else {
+    return move;
+  }
+}
+export function convertNumToAlphabet(num: number): string | undefined {
+  return Object.entries(Y_AXIS).find(([, value]) => value === num)?.[0];
+}
+
+export function createVerticalMove({
+  piece,
+  toX,
+  toY,
+}: {
+  piece: UPPERCASE_KIND_VALUE;
+  toX: number;
+  toY: number;
+}): VerticalMove {
+  const to = `${toX}${convertNumToAlphabet(toY)}`;
+  const move = `${piece}*${to}`;
+  if (!isVerticalMove(move)) {
+    throw Error(`${move} is not vertical move`);
+  } else {
+    return move;
+  }
 }
