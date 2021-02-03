@@ -1,4 +1,9 @@
-import { isMove, isSfenPointSelector } from '../board/types';
+import { createVerticalMove } from '../board';
+import {
+  isHorizontalMove,
+  isSfenPointSelector,
+  isVerticalMove,
+} from '../board/types';
 import {
   initSquare,
   toPrettierString,
@@ -7,6 +12,7 @@ import {
   toSquareStr,
   initHands,
   initBoard,
+  createHorizontalMove,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {
@@ -167,6 +173,36 @@ describe('toSquareStr', () => {
   });
 });
 
+describe('createHorizontalMove', () => {
+  test('success', () => {
+    const move = createHorizontalMove({ fromX: 7, fromY: 7, toX: 7, toY: 6 });
+    expect(move).toBe('7g7f');
+  });
+  test('can promote', () => {
+    const move = createHorizontalMove({
+      fromX: 7,
+      fromY: 7,
+      toX: 7,
+      toY: 6,
+      promote: true,
+    });
+    expect(move).toBe('7g7f+');
+  });
+  test('error', () => {
+    function error() {
+      createHorizontalMove({ fromX: 10, fromY: 7, toX: 7, toY: 6 });
+    }
+    expect(error).toThrowError();
+  });
+});
+
+describe('createVerticalMove', () => {
+  test('success', () => {
+    const move = createVerticalMove({ toX: 4, toY: 5, piece: 'B' });
+    expect(move).toBe('B*4e');
+  });
+});
+
 describe('isSfenPointSelector', () => {
   test('success', () => {
     const str = '1a';
@@ -186,25 +222,31 @@ describe('isSfenPointSelector', () => {
   });
 });
 
-describe('isMove', () => {
+describe('isHorizontalMove', () => {
   test('success', () => {
     const str = '1a2b';
-    expect(isMove(str)).toBeTruthy();
+    expect(isHorizontalMove(str)).toBeTruthy();
   });
   test('0 is out of bounds', () => {
     const str = '0a0b+';
-    expect(isMove(str)).toBeFalsy();
+    expect(isHorizontalMove(str)).toBeFalsy();
   });
   test('x is out of bounds', () => {
     const str = '1a2x';
-    expect(isMove(str)).toBeFalsy();
+    expect(isHorizontalMove(str)).toBeFalsy();
   });
   test('move can include promote', () => {
     const str = '1a2b+';
-    expect(isMove(str)).toBeTruthy();
+    expect(isHorizontalMove(str)).toBeTruthy();
   });
+});
+describe('isMove', () => {
   test('move can drop hands', () => {
     const str = 'B*5c';
-    expect(isMove(str)).toBeTruthy();
+    expect(isVerticalMove(str)).toBeTruthy();
+  });
+  test('empty', () => {
+    const str = '';
+    expect(isVerticalMove(str)).toBeFalsy();
   });
 });
