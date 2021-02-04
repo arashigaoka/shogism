@@ -130,20 +130,24 @@ export function initBoard(
     squareStr,
     handsStr,
     turn,
+    editMode = false,
   }: {
     squareStr: string;
     handsStr: string;
     turn: string;
+    editMode?: boolean;
   } = INITIAL_BOARD.HIRATE,
 ): Board {
   const squareList = initSquare(squareStr);
   const hands = initHands(handsStr);
   const isSenteTurn = turn === 'w';
-  return { squareList, hands, isSenteTurn };
+  return { squareList, hands, isSenteTurn, editMode };
 }
 export function moveBoard(board: Board, move: Move): Board {
   return produce(board, (draftBoard) => {
-    draftBoard.isSenteTurn = !board.isSenteTurn;
+    if (!board.editMode) {
+      draftBoard.isSenteTurn = !board.isSenteTurn;
+    }
     if (move.slice(1, 2) === '*') {
       // always uppercase
       const piece = move.slice(0, 1);

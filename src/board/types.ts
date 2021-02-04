@@ -71,6 +71,7 @@ export type Board = {
   readonly squareList: SquareList;
   readonly hands: Hands;
   readonly isSenteTurn: boolean;
+  editMode?: boolean;
   comment?: string;
 };
 export const INITIAL_BOARD = {
