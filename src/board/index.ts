@@ -239,3 +239,13 @@ export function createVerticalMove({
     return move;
   }
 }
+
+export function promoteOrFlipPieceOnSquareList(
+  board: Board,
+  newState: Piece,
+  position: number,
+): Board {
+  return produce(board, (draftBoard) => {
+    draftBoard.squareList[position] = newState;
+  });
+}
