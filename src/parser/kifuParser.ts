@@ -4,7 +4,7 @@ import {
   initBoard,
   moveBoard,
 } from '../board';
-import { HorizontalMove, isHorizontalMove, Move, Y_AXIS } from '../board/types';
+import { Move, Y_AXIS } from '../board/types';
 import { FinishTrigger, Header, Kifu } from '../kifu/types';
 import { Piece, UPPERCASE_KIND } from '../piece';
 const KifToSfen = {
@@ -38,13 +38,13 @@ function isComment(str: any): str is Comment {
 
 export function parseKifMove(
   move: string,
-  prevMove: HorizontalMove | null,
+  prevMove: Move | null,
 ): Move | Comment | null {
   if (move.startsWith('*')) {
     const comment = move.slice(1).trim();
     return { comment };
   }
-  const horizontalMovePattern = /[１-９][一二三四五六七八九][歩香桂銀金角飛玉王と杏圭全馬竜龍]成?\(\d{2}/;
+  const horizontalMovePattern = /[１-９][一二三四五六七八九]([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
   const horizontalMove = move.match(horizontalMovePattern);
   if (horizontalMove) {
     const target = horizontalMove[0];
@@ -53,11 +53,11 @@ export function parseKifMove(
     const toY = ChineseNumber[secondChar];
     const fromX = Number(target.slice(-2, -1));
     const fromY = Number(target.slice(-1));
-    const promote = target.includes('成');
+    const promote = target.slice(-4, -3) === '成';
     const move = createHorizontalMove({ fromX, fromY, toX, toY, promote });
     return move;
   }
-  const horizontalMoveGetBackPattern = /同[ |　]*[歩香桂銀金角飛玉王と杏圭全馬竜龍]\(\d{2}/;
+  const horizontalMoveGetBackPattern = /同[ |　]*([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)\(\d{2}/;
   const getBackValue = move.match(horizontalMoveGetBackPattern);
   if (getBackValue) {
     if (!prevMove) {
@@ -109,12 +109,13 @@ function parseKifHeader(line: string): Header | undefined {
 export function parseKIF(kifStr: string): Kifu {
   const lines = kifStr.replace(/\r\n?/g, '\n').split('\n');
   const moves = [] as Array<Move>;
-  let prevMove = null as HorizontalMove | null;
+  let prevMove = null as Move | null;
   const board = initBoard();
   let header = undefined as Header | undefined;
   let finishTrigger = undefined as FinishTrigger | undefined;
   const boardList = lines
-    .filter((line) => !line.startsWith('#'))
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'))
     .reduce(
       (acc, line) => {
         if (isHeader(line)) {
@@ -129,6 +130,7 @@ export function parseKIF(kifStr: string): Kifu {
           const triggerIfMatch = getFinishTriggerIfMatch(line);
           if (triggerIfMatch) {
             finishTrigger = triggerIfMatch;
+            return acc;
           }
         }
         const moveOrComment = parseKifMove(line, prevMove);
@@ -137,11 +139,7 @@ export function parseKIF(kifStr: string): Kifu {
         }
         const lastBoard = acc[acc.length - 1];
         if (!isComment(moveOrComment)) {
-          if (isHorizontalMove(moveOrComment)) {
-            prevMove = moveOrComment;
-          } else {
-            prevMove = null;
-          }
+          prevMove = moveOrComment;
           moves.push(moveOrComment);
           const newBoard = moveBoard(lastBoard, moveOrComment);
           return [...acc, newBoard];
