@@ -1,4 +1,5 @@
 import { toPrettierString } from '../board';
+import { INITIAL_SQUARE } from '../board/types';
 import { initKifuFromSfen } from '../kifu';
 
 describe('initKifu', () => {
@@ -8,7 +9,7 @@ describe('initKifu', () => {
     expect(kifu.moves.length).toBe(0);
   });
   test('init by whiteboard', () => {
-    const squareStr = '9/9/9/9/9/9/9/9/9';
+    const squareStr = INITIAL_SQUARE.NOPIECE;
     const turn = 'w';
     const handsStr = 'KRB2G2S2N2L9Pkrb2g2s2n2l9p';
     const kifu = initKifuFromSfen({ squareStr, turn, handsStr });
