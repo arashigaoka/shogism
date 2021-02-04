@@ -15,7 +15,7 @@ import {
   Board,
   Hands,
   HorizontalMove,
-  INITIAL_SQUARE,
+  INITIAL_BOARD,
   isHorizontalMove,
   isVerticalMove,
   Move,
@@ -134,11 +134,7 @@ export function initBoard(
     squareStr: string;
     handsStr: string;
     turn: string;
-  } = {
-    squareStr: INITIAL_SQUARE.HIRATE,
-    handsStr: '',
-    turn: 'w',
-  },
+  } = INITIAL_BOARD.HIRATE,
 ): Board {
   const squareList = initSquare(squareStr);
   const hands = initHands(handsStr);

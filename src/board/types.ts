@@ -73,8 +73,15 @@ export type Board = {
   readonly isSenteTurn: boolean;
   comment?: string;
 };
-
-export const INITIAL_SQUARE = {
-  HIRATE: 'lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL',
-  NOPIECE: '9/9/9/9/9/9/9/9/9',
-} as const;
+export const INITIAL_BOARD = {
+  HIRATE: {
+    squareStr: 'lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL',
+    handsStr: '',
+    turn: 'w',
+  },
+  NOPIECE: {
+    squareStr: '9/9/9/9/9/9/9/9/9',
+    handsStr: 'KRB2G2S2N2L9Pkrb2g2s2n2l9p',
+    turn: 'w',
+  },
+};

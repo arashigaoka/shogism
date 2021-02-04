@@ -1,5 +1,5 @@
 import { toPrettierString } from '../board';
-import { INITIAL_SQUARE } from '../board/types';
+import { INITIAL_BOARD } from '../board/types';
 import { initKifuFromSfen } from '../kifu';
 
 describe('initKifu', () => {
@@ -9,10 +9,7 @@ describe('initKifu', () => {
     expect(kifu.moves.length).toBe(0);
   });
   test('init by whiteboard', () => {
-    const squareStr = INITIAL_SQUARE.NOPIECE;
-    const turn = 'w';
-    const handsStr = 'KRB2G2S2N2L9Pkrb2g2s2n2l9p';
-    const kifu = initKifuFromSfen({ squareStr, turn, handsStr });
+    const kifu = initKifuFromSfen(INITIAL_BOARD.NOPIECE);
     const board = kifu.boardList[0];
     expect(board.hands['P']).toBe(9);
     expect(board.squareList.join('').length).toBe(0);
