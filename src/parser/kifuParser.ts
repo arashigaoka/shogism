@@ -83,12 +83,14 @@ export function parseKifMove(
   const verticalMove = move.match(verticalMovePattern);
   if (verticalMove) {
     const target = verticalMove[0];
-    const toX = Number(convertZenToHan(target.slice(0, 1)));
     const secondChar = target.slice(1, 2) as keyof typeof ChineseNumber;
-    const toY = ChineseNumber[secondChar];
+    const to = {
+      x: Number(convertZenToHan(target.slice(0, 1))),
+      y: ChineseNumber[secondChar],
+    };
     const thirdChar = target.slice(2, 3) as keyof typeof KifToSfen;
     const piece = KifToSfen[thirdChar];
-    const move = createVerticalMove({ toX, toY, piece });
+    const move = createVerticalMove({ to, piece });
     return move;
   }
   return null;
