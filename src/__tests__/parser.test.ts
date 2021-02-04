@@ -49,6 +49,7 @@ PP.PPPPPP
 LNSGKGSNL
 `;
     expect(toPrettierString(lastBoard.squareList)).toBe(prettierString);
+    expect(lastBoard.isSenteTurn).toBeFalsy();
   });
   test('parse kif with comments', () => {
     const data = parseKIF(`

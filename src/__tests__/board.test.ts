@@ -1,5 +1,6 @@
 import { createVerticalMove } from '../board';
 import {
+  INITIAL_BOARD,
   isHorizontalMove,
   isSfenPointSelector,
   isVerticalMove,
@@ -161,6 +162,12 @@ LNSGKGSNL
 `;
     expect(toPrettierString(newBoard.squareList)).toBe(prettierString);
     expect(newBoard.hands['b']).toBe(0);
+  });
+  test('turn is immutable in edit mode', () => {
+    const board = initBoard({ ...INITIAL_BOARD.NOPIECE, editMode: true });
+    expect(board.isSenteTurn).toBeTruthy();
+    const newBoard = moveBoard(board, 'B*1a');
+    expect(newBoard.isSenteTurn).toBeTruthy();
   });
 });
 
