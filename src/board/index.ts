@@ -17,8 +17,10 @@ import {
   HorizontalMove,
   INITIAL_BOARD,
   isHorizontalMove,
+  isPoint,
   isVerticalMove,
   Move,
+  Point,
   SfenPointSelector,
   SquareList,
   VerticalMove,
@@ -88,17 +90,22 @@ export function selectPiece(
   return squareList[index];
 }
 
-function getIndex({ x, y }: { x: number; y: number }): number {
+export function getIndex({ x, y }: { x: number; y: number }): number {
   if (x < 1 || x > 9 || y < 1 || y > 9) {
     throw new Error('selected Position is out of bounds');
   }
   return 9 - x + (y - 1) * 9;
 }
 
-function getPoint(sfenPointSelector: SfenPointSelector) {
+function getPointFromSfen(sfenPointSelector: SfenPointSelector) {
   const xAxis = Number(sfenPointSelector.slice(0, 1)) as X_AXIS;
   const yAxis = sfenPointSelector.slice(1, 2) as keyof typeof Y_AXIS;
   return { x: xAxis, y: Y_AXIS[yAxis] };
+}
+function getPointFromIndex(index: number): Point {
+  const x = 9 - (index % 9);
+  const y = (index - (index % 9)) / 9 + 1;
+  return { x, y };
 }
 
 export function initHands(handsStr: string): Hands {
@@ -155,7 +162,7 @@ export function moveBoard(board: Board, move: Move): Board {
         throw Error(`${piece} is incollect sfen`);
       } else {
         const to = move.slice(2, 4) as SfenPointSelector;
-        const toIndex = getIndex(getPoint(to));
+        const toIndex = getIndex(getPointFromSfen(to));
         if (board.isSenteTurn) {
           draftBoard.squareList[toIndex] = piece;
           draftBoard.hands[piece] -= 1;
@@ -167,12 +174,12 @@ export function moveBoard(board: Board, move: Move): Board {
       return draftBoard;
     }
     const from = move.slice(0, 2) as SfenPointSelector;
-    const fromIndex = getIndex(getPoint(from));
+    const fromIndex = getIndex(getPointFromSfen(from));
     const piece = selectPiece(board.squareList, fromIndex);
     draftBoard.squareList[fromIndex] = '';
 
     const to = move.slice(2, 4) as SfenPointSelector;
-    const toIndex = getIndex(getPoint(to));
+    const toIndex = getIndex(getPointFromSfen(to));
     const toPiece = selectPiece(board.squareList, toIndex);
     if (toPiece !== '') {
       const pieceForHands = !isKindValue(toPiece)
@@ -196,22 +203,38 @@ export function moveBoard(board: Board, move: Move): Board {
 }
 
 export function createHorizontalMove({
-  fromX,
-  fromY,
-  toX,
-  toY,
+  from,
+  to,
   promote = false,
 }: {
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
+  from: number | Point;
+  to: number | Point;
   promote?: boolean;
 }): HorizontalMove {
-  const from = `${fromX}${convertNumToAlphabet(fromY)}`;
-  const to = `${toX}${convertNumToAlphabet(toY)}`;
+  let [fromX, fromY, toX, toY] = [0, 0, 0, 0];
+  if (isPoint(from)) {
+    if (!isPoint(to)) {
+      throw Error('when "from" is Point, "to" must be Point');
+    }
+    fromX = from.x;
+    fromY = from.y;
+    toX = to.x;
+    toY = to.y;
+  } else {
+    if (isPoint(to)) {
+      throw Error('when "from" is Point, "to" must be Point');
+    }
+    const fromPoint = getPointFromIndex(from);
+    fromX = fromPoint.x;
+    fromY = fromPoint.y;
+    const toPoint = getPointFromIndex(to);
+    toX = toPoint.x;
+    toY = toPoint.y;
+  }
+  const fromSfen = `${fromX}${convertNumToAlphabet(fromY)}`;
+  const toSfen = `${toX}${convertNumToAlphabet(toY)}`;
   const suffix: SHOW_PROMOTE = promote ? '+' : '';
-  const move = `${from}${to}${suffix}`;
+  const move = `${fromSfen}${toSfen}${suffix}`;
   if (!isHorizontalMove(move)) {
     throw Error(`${move} is not horizontalmove`);
   } else {
