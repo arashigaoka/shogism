@@ -1,6 +1,7 @@
 import { toPrettierString } from '../board';
 import { FinishTrigger } from '../kifu/types';
 import { parseKIF, parseKifMove } from '../parser/kifuParser';
+import fs from 'fs';
 
 describe('parse move', () => {
   test('parse kif to horizontal move', () => {
@@ -83,5 +84,12 @@ LNSGKGSNL
     expect(data.header?.sente).toBe('sente');
     expect(data.header?.gote).toBe('gote');
     expect(data.finishTrigger).toBe(FinishTrigger['中断']);
+  });
+  test('parse long kif', () => {
+    const text = fs.readFileSync('test/kif/longTest.kif', {
+      encoding: 'utf-8',
+    });
+    const data = parseKIF(text);
+    expect(data.moves.length).toBe(131);
   });
 });
