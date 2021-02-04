@@ -1,4 +1,3 @@
-import { createVerticalMove } from '../board';
 import {
   INITIAL_BOARD,
   isHorizontalMove,
@@ -6,6 +5,8 @@ import {
   isVerticalMove,
 } from '../board/types';
 import {
+  createVerticalMove,
+  promoteOrFlipPieceOnSquareList,
   initSquare,
   toPrettierString,
   selectPiece,
@@ -255,5 +256,12 @@ describe('isMove', () => {
   test('empty', () => {
     const str = '';
     expect(isVerticalMove(str)).toBeFalsy();
+  });
+});
+describe('promoteOrFlipPieceOnSquareList', () => {
+  test('success', () => {
+    const board = initBoard({ ...INITIAL_BOARD.HIRATE, editMode: true });
+    const newBoard = promoteOrFlipPieceOnSquareList(board, '+L', 0);
+    expect(newBoard.squareList[0]).toBe('+L');
   });
 });
