@@ -214,7 +214,7 @@ describe('createHorizontalMove', () => {
 
 describe('createVerticalMove', () => {
   test('success', () => {
-    const move = createVerticalMove({ toX: 4, toY: 5, piece: 'B' });
+    const move = createVerticalMove({ to: { x: 4, y: 5 }, piece: 'B' });
     expect(move).toBe('B*4e');
   });
 });

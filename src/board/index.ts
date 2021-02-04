@@ -247,15 +247,22 @@ export function convertNumToAlphabet(num: number): string | undefined {
 
 export function createVerticalMove({
   piece,
-  toX,
-  toY,
+  to,
 }: {
   piece: UPPERCASE_KIND_VALUE;
-  toX: number;
-  toY: number;
+  to: number | Point;
 }): VerticalMove {
-  const to = `${toX}${convertNumToAlphabet(toY)}`;
-  const move = `${piece}*${to}`;
+  let [toX, toY] = [0, 0];
+  if (isPoint(to)) {
+    toX = to.x;
+    toY = to.y;
+  } else {
+    const toPoint = getPointFromIndex(to);
+    toX = toPoint.x;
+    toY = toPoint.y;
+  }
+  const toSfen = `${toX}${convertNumToAlphabet(toY)}`;
+  const move = `${piece}*${toSfen}`;
   if (!isVerticalMove(move)) {
     throw Error(`${move} is not vertical move`);
   } else {
