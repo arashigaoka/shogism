@@ -20,6 +20,13 @@ export const Y_AXIS = {
   h: 8,
   i: 9,
 };
+export type Point = {
+  x: number;
+  y: number;
+};
+export function isPoint(target: any): target is Point {
+  return !!target.x;
+}
 export type SfenPointSelector = `${X_AXIS}${keyof typeof Y_AXIS}`;
 export function isSfenPointSelector(str: string): str is SfenPointSelector {
   return (

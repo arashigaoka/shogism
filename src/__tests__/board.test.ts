@@ -183,22 +183,30 @@ describe('toSquareStr', () => {
 
 describe('createHorizontalMove', () => {
   test('success', () => {
-    const move = createHorizontalMove({ fromX: 7, fromY: 7, toX: 7, toY: 6 });
+    const move = createHorizontalMove({
+      from: { x: 7, y: 7 },
+      to: { x: 7, y: 6 },
+    });
     expect(move).toBe('7g7f');
   });
   test('can promote', () => {
     const move = createHorizontalMove({
-      fromX: 7,
-      fromY: 7,
-      toX: 7,
-      toY: 6,
+      from: { x: 7, y: 7 },
+      to: { x: 7, y: 6 },
       promote: true,
     });
     expect(move).toBe('7g7f+');
   });
+  test('can call by index', () => {
+    const move = createHorizontalMove({ from: 7, to: 16 });
+    expect(move).toBe('2a2b');
+  });
   test('error', () => {
     function error() {
-      createHorizontalMove({ fromX: 10, fromY: 7, toX: 7, toY: 6 });
+      createHorizontalMove({
+        from: { x: 10, y: 7 },
+        to: { x: 7, y: 6 },
+      });
     }
     expect(error).toThrowError();
   });

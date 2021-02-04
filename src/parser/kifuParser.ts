@@ -48,13 +48,17 @@ export function parseKifMove(
   const horizontalMove = move.match(horizontalMovePattern);
   if (horizontalMove) {
     const target = horizontalMove[0];
-    const toX = Number(convertZenToHan(target.slice(0, 1)));
     const secondChar = target.slice(1, 2) as keyof typeof ChineseNumber;
-    const toY = ChineseNumber[secondChar];
-    const fromX = Number(target.slice(-2, -1));
-    const fromY = Number(target.slice(-1));
+    const to = {
+      x: Number(convertZenToHan(target.slice(0, 1))),
+      y: ChineseNumber[secondChar],
+    };
+    const from = {
+      x: Number(target.slice(-2, -1)),
+      y: Number(target.slice(-1)),
+    };
     const promote = target.slice(-4, -3) === '成';
-    const move = createHorizontalMove({ fromX, fromY, toX, toY, promote });
+    const move = createHorizontalMove({ from, to, promote });
     return move;
   }
   const horizontalMoveGetBackPattern = /同[ |　]*([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)\(\d{2}/;
@@ -64,13 +68,14 @@ export function parseKifMove(
       throw Error('cannot get back');
     } else {
       const target = getBackValue[0];
-      const fromX = Number(target.slice(-2, -1));
-      const fromY = Number(target.slice(-1));
+      const from = {
+        x: Number(target.slice(-2, -1)),
+        y: Number(target.slice(-1)),
+      };
       const promote = target.includes('成');
-      const toX = Number(prevMove.slice(2, 3));
       const y_axis_key = prevMove.slice(3, 4) as keyof typeof Y_AXIS;
-      const toY = Y_AXIS[y_axis_key];
-      const move = createHorizontalMove({ fromX, fromY, toX, toY, promote });
+      const to = { x: Number(prevMove.slice(2, 3)), y: Y_AXIS[y_axis_key] };
+      const move = createHorizontalMove({ from, to, promote });
       return move;
     }
   }
