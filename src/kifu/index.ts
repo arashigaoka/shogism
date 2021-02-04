@@ -1,5 +1,5 @@
 import { initBoard, moveBoard } from '../board';
-import { isMove, Move } from '../board/types';
+import { isMove, Move, SquareList } from '../board/types';
 import { Kifu } from './types';
 
 export function initKifuFromSfen(
@@ -32,4 +32,14 @@ export function initKifuFromSfen(
     boardList: [board],
     moves: [],
   };
+}
+export function getFirstIndexOfMatchedBoard(
+  kifu: Kifu,
+  sfenStr: SquareList,
+): number {
+  return kifu.boardList.findIndex((board) => {
+    return board.squareList.every(
+      (square, i) => sfenStr[i] === '' || sfenStr[i] === square,
+    );
+  });
 }
