@@ -1,6 +1,6 @@
-import { toPrettierString } from '../board';
+import { initBoard, toPrettierString } from '../board';
 import { INITIAL_BOARD } from '../board/types';
-import { initKifuFromSfen } from '../kifu';
+import { getFirstIndexOfMatchedBoard, initKifuFromSfen } from '../kifu';
 
 describe('initKifu', () => {
   test('init by startpos', () => {
@@ -43,5 +43,14 @@ LNSGKGSNL
     const kifu = initKifuFromSfen(undefined, moveStr);
     const lastBoard = kifu.boardList[kifu.boardList.length - 1];
     expect(lastBoard.hands['p']).toBe(4);
+  });
+});
+describe('search kifu', () => {
+  test('searchKif', () => {
+    const kifu = initKifuFromSfen();
+    const board = initBoard();
+    const squareList = board.squareList;
+    const index = getFirstIndexOfMatchedBoard(kifu, squareList);
+    expect(index).toBe(0);
   });
 });
