@@ -35,6 +35,18 @@ export function isUpperCaseKindValue(
 }
 export type KIND_VALUE = LOWERCASE_KIND_VALUE | UPPERCASE_KIND_VALUE;
 
+type PROMOTABLE_KIND_VALUE = Exclude<KIND_VALUE, 'k' | 'g' | 'K' | 'G'>;
+function isPromotableKindValue(
+  value: KIND_VALUE,
+): value is PROMOTABLE_KIND_VALUE {
+  const ngKind: Array<KIND_VALUE> = [
+    LOWERCASE_KIND.KIN,
+    LOWERCASE_KIND.OU,
+    UPPERCASE_KIND.KIN,
+    UPPERCASE_KIND.OU,
+  ];
+  return !ngKind.includes(value);
+}
 export type SHOW_PROMOTE = '+' | '';
 
 export type Piece = `${SHOW_PROMOTE}${KIND_VALUE}`;
@@ -51,5 +63,28 @@ export function flip(kind: KIND_VALUE): KIND_VALUE {
     return kind.toLowerCase() as LOWERCASE_KIND_VALUE;
   } else {
     return kind.toUpperCase() as UPPERCASE_KIND_VALUE;
+  }
+}
+
+function promote(kind: KIND_VALUE): Piece {
+  return ('+' + kind) as Piece;
+}
+
+export function getChangeablePiece(piece: Piece): Array<Piece> {
+  const kindValue = piece.startsWith('+')
+    ? (piece.slice(1, 2) as KIND_VALUE)
+    : (piece as KIND_VALUE);
+  const lowerKindValue = isUpperCaseKindValue(kindValue)
+    ? flip(kindValue)
+    : kindValue;
+  if (isPromotableKindValue(lowerKindValue)) {
+    return [
+      lowerKindValue,
+      flip(lowerKindValue),
+      promote(lowerKindValue),
+      promote(flip(lowerKindValue)),
+    ];
+  } else {
+    return [lowerKindValue, flip(lowerKindValue)];
   }
 }
