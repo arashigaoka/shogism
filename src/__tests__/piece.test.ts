@@ -1,13 +1,17 @@
-import { flip, getChangeablePiece } from '../piece';
+import { turnOver, getChangeablePiece } from '../piece';
 
-describe('flip', () => {
-  test('promote', () => {
-    const flippedPorn = flip('p');
-    expect(flippedPorn).toBe('P');
+describe('turnOver', () => {
+  test('success', () => {
+    const porn = turnOver('p');
+    expect(porn).toBe('P');
   });
-  test('unpromote', () => {
-    const flippedPorn = flip('P');
-    expect(flippedPorn).toBe('p');
+  test('reverse', () => {
+    const porn = turnOver('P');
+    expect(porn).toBe('p');
+  });
+  test('promoted piece', () => {
+    const porn = turnOver('+P');
+    expect(porn).toBe('+p');
   });
 });
 describe('getChangeablePiece', () => {

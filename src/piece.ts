@@ -58,11 +58,12 @@ export function isKindValue(piece: Piece): piece is KIND_VALUE {
   return !piece.startsWith('+');
 }
 
-export function flip(kind: KIND_VALUE): KIND_VALUE {
-  if (isUpperCaseKindValue(kind)) {
-    return kind.toLowerCase() as LOWERCASE_KIND_VALUE;
+export function turnOver(piece: Piece): Piece {
+  const target = piece.startsWith('+') ? piece.slice(1) : piece;
+  if (isUpperCaseKindValue(target)) {
+    return piece.toLowerCase() as Piece;
   } else {
-    return kind.toUpperCase() as UPPERCASE_KIND_VALUE;
+    return piece.toUpperCase() as Piece;
   }
 }
 
@@ -75,16 +76,16 @@ export function getChangeablePiece(piece: Piece): Array<Piece> {
     ? (piece.slice(1, 2) as KIND_VALUE)
     : (piece as KIND_VALUE);
   const lowerKindValue = isUpperCaseKindValue(kindValue)
-    ? flip(kindValue)
+    ? (turnOver(kindValue) as KIND_VALUE)
     : kindValue;
   if (isPromotableKindValue(lowerKindValue)) {
     return [
       lowerKindValue,
-      flip(lowerKindValue),
+      turnOver(lowerKindValue),
       promote(lowerKindValue),
-      promote(flip(lowerKindValue)),
+      promote(turnOver(lowerKindValue) as KIND_VALUE),
     ];
   } else {
-    return [lowerKindValue, flip(lowerKindValue)];
+    return [lowerKindValue, turnOver(lowerKindValue)];
   }
 }

@@ -1,6 +1,6 @@
 import produce from 'immer';
 import {
-  flip,
+  turnOver,
   isKindValue,
   isPiece,
   isUpperCaseKindValue,
@@ -167,8 +167,8 @@ export function moveBoard(board: Board, move: Move): Board {
           draftBoard.squareList[toIndex] = piece;
           draftBoard.hands[piece] -= 1;
         } else {
-          draftBoard.squareList[toIndex] = flip(piece);
-          draftBoard.hands[flip(piece)] -= 1;
+          draftBoard.squareList[toIndex] = turnOver(piece);
+          draftBoard.hands[turnOver(piece)] -= 1;
         }
       }
       return draftBoard;
@@ -186,7 +186,7 @@ export function moveBoard(board: Board, move: Move): Board {
         ? (toPiece.slice(1.2) as KIND_VALUE)
         : toPiece;
       // not check for piece is opposite
-      draftBoard.hands[flip(pieceForHands)] += 1;
+      draftBoard.hands[turnOver(pieceForHands)] += 1;
     }
     const showPromote = move.slice(4, 5);
     if (showPromote === '+') {
