@@ -279,3 +279,21 @@ export function promoteOrFlipPieceOnSquareList(
     draftBoard.squareList[position] = newState;
   });
 }
+
+export function getExistPieceFromHands(
+  hands: Hands,
+): { senteExistHands: Partial<Hands>; goteExistHands: Partial<Hands> } {
+  const senteExistHands = Object.values(UPPERCASE_KIND)
+    .filter((kind) => hands[kind])
+    .reduce(
+      (acc, kind) => ({ ...acc, [kind]: hands[kind] }),
+      {} as Partial<Hands>,
+    );
+  const goteExistHands = Object.values(LOWERCASE_KIND)
+    .filter((kind) => hands[kind])
+    .reduce(
+      (acc, kind) => ({ ...acc, [kind]: hands[kind] }),
+      {} as Partial<Hands>,
+    );
+  return { senteExistHands, goteExistHands };
+}

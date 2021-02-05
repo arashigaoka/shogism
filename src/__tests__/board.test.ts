@@ -15,6 +15,7 @@ import {
   initHands,
   initBoard,
   createHorizontalMove,
+  getExistPieceFromHands,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {
@@ -271,5 +272,18 @@ describe('promoteOrFlipPieceOnSquareList', () => {
     const board = initBoard({ ...INITIAL_BOARD.HIRATE, editMode: true });
     const newBoard = promoteOrFlipPieceOnSquareList(board, '+L', 0);
     expect(newBoard.squareList[0]).toBe('+L');
+  });
+});
+
+describe('getHands', () => {
+  test('success', () => {
+    const board = initBoard(INITIAL_BOARD.NOPIECE);
+    const { senteExistHands, goteExistHands } = getExistPieceFromHands(
+      board.hands,
+    );
+    expect(senteExistHands['P']).toBe(9);
+    expect(senteExistHands['p']).toBe(undefined);
+    expect(goteExistHands['p']).toBe(9);
+    expect(goteExistHands['P']).toBe(undefined);
   });
 });
