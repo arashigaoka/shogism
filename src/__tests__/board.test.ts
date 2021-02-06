@@ -16,6 +16,8 @@ import {
   initBoard,
   createHorizontalMove,
   getExistPieceFromHands,
+  getMovablePoints,
+  getDropablePoints,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {
@@ -285,5 +287,166 @@ describe('getHands', () => {
     expect(senteExistHands['p']).toBe(undefined);
     expect(goteExistHands['p']).toBe(9);
     expect(goteExistHands['P']).toBe(undefined);
+  });
+});
+
+describe('getMovablePositions', () => {
+  test('fu of sente', () => {
+    const board = initBoard();
+    const positions = getMovablePoints(board, { x: 7, y: 7 });
+    expect(positions[0]).toStrictEqual({ x: 7, y: 6 });
+  });
+  test('fu of gote', () => {
+    const board = initBoard();
+    const positions = getMovablePoints(board, { x: 3, y: 3 });
+    expect(positions[0]).toStrictEqual({ x: 3, y: 4 });
+  });
+  test('cannot move fu because my piece exists', () => {
+    const board = initBoard({ ...INITIAL_BOARD.NOPIECE, editMode: true });
+    const newBoard = moveBoard(board, 'P*5e');
+    const testBoard = moveBoard(newBoard, 'B*5d');
+    const positions = getMovablePoints(testBoard, { x: 5, y: 5 });
+    expect(positions.length).toBe(0);
+  });
+  test('kyosha of sente', () => {
+    const board = initBoard({ ...INITIAL_BOARD.NOPIECE, editMode: true });
+    const newBoard = moveBoard(board, 'L*5h');
+    const testBoard = moveBoard({ ...newBoard, isSenteTurn: false }, 'P*5c');
+    const positions = getMovablePoints(testBoard, { x: 5, y: 8 });
+    expect(positions).toStrictEqual([
+      { x: 5, y: 7 },
+      { x: 5, y: 6 },
+      { x: 5, y: 5 },
+      { x: 5, y: 4 },
+      { x: 5, y: 3 },
+    ]);
+  });
+  test('keima of gote', () => {
+    const board = initBoard({ ...INITIAL_BOARD.NOPIECE, editMode: true });
+    const newBoard = moveBoard(board, 'P*9f');
+    const newBoard2 = moveBoard(newBoard, 'P*7f');
+    const testBoard = moveBoard({ ...newBoard2, isSenteTurn: false }, 'N*8d');
+    const positions = getMovablePoints(testBoard, { x: 8, y: 4 });
+    expect(positions).toStrictEqual([
+      { x: 9, y: 6 },
+      { x: 7, y: 6 },
+    ]);
+  });
+  test('gin of sente', () => {
+    const board = initBoard();
+    const positions = getMovablePoints(board, { x: 7, y: 9 });
+    expect(positions).toStrictEqual([
+      { x: 6, y: 8 },
+      { x: 7, y: 8 },
+    ]);
+    const newBoard = moveBoard(board, '7i6h');
+    const newPositions = getMovablePoints(newBoard, { x: 6, y: 8 });
+    expect(newPositions).toStrictEqual([{ x: 7, y: 9 }]);
+    const noPieceBoard = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const newBoard2 = moveBoard(noPieceBoard, 'S*1c');
+    const newPositions2 = getMovablePoints(newBoard2, { x: 1, y: 3 });
+    expect(newPositions2).toStrictEqual([
+      { x: 1, y: 2 },
+      { x: 2, y: 2 },
+      { x: 2, y: 4 },
+    ]);
+  });
+  test('kin of sente', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const newBoard = moveBoard(board, 'G*9a');
+    const positions = getMovablePoints(newBoard, { x: 9, y: 1 });
+    expect(positions).toStrictEqual([
+      { x: 8, y: 1 },
+      { x: 9, y: 2 },
+    ]);
+  });
+  test('kaku of sente', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const newBoard = moveBoard(board, 'B*4d');
+    const positions = getMovablePoints(newBoard, { x: 4, y: 4 });
+    expect(positions.length).toBe(14);
+    const newBoard2 = moveBoard(newBoard, 'K*3c');
+    const positions2 = getMovablePoints(newBoard2, { x: 4, y: 4 });
+    expect(positions2.length).toBe(11);
+    const newBoard3 = moveBoard({ ...newBoard2, isSenteTurn: false }, 'K*5c');
+    const positions3 = getMovablePoints(newBoard3, { x: 4, y: 4 });
+    expect(positions3.length).toBe(9);
+  });
+  test('hisya of gote', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+      turn: 'b',
+    });
+    const newBoard = moveBoard(board, 'R*4d');
+    const positions = getMovablePoints(newBoard, { x: 4, y: 4 });
+    expect(positions.length).toBe(16);
+    const newBoard2 = moveBoard(newBoard, 'K*4c');
+    const positions2 = getMovablePoints(newBoard2, { x: 4, y: 4 });
+    expect(positions2.length).toBe(13);
+  });
+  test('gyoku of sente', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const newBoard = moveBoard(board, 'K*4d');
+    const positions = getMovablePoints(newBoard, { x: 4, y: 4 });
+    expect(positions.length).toBe(8);
+  });
+});
+
+describe('getDropablePositions', () => {
+  test('kaku', () => {
+    const board = initBoard(INITIAL_BOARD.NOPIECE);
+    const positions = getDropablePoints(board, 'B');
+    expect(positions.length).toBe(81);
+  });
+  test('fu', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const positions = getDropablePoints(board, 'P');
+    expect(positions.length).toBe(72);
+    const newBoard = moveBoard(board, 'P*4d');
+    const newPositions = getDropablePoints(newBoard, 'P');
+    expect(newPositions.length).toBe(64);
+  });
+  test('fu of gote', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const positions = getDropablePoints(board, 'p');
+    expect(positions.length).toBe(72);
+    const newBoard = moveBoard(board, 'P*4d');
+    const newPositions = getDropablePoints(newBoard, 'p');
+    expect(newPositions.length).toBe(71);
+  });
+  test('kyosha of gote', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const positions = getDropablePoints(board, 'l');
+    expect(positions.length).toBe(72);
+  });
+  test('keima', () => {
+    const board = initBoard({
+      ...INITIAL_BOARD.NOPIECE,
+      editMode: true,
+    });
+    const positions = getDropablePoints(board, 'n');
+    expect(positions.length).toBe(63);
   });
 });

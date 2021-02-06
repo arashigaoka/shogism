@@ -10,7 +10,10 @@ import {
   SHOW_PROMOTE,
   UPPERCASE_KIND,
   UPPERCASE_KIND_VALUE,
+  isUpperPiece,
+  UPPERCASE_PIECE,
 } from '../piece';
+import { MOVABLE_RELATIVE_POSITIONS } from '../piece/moves';
 import {
   Board,
   Hands,
@@ -167,8 +170,9 @@ export function moveBoard(board: Board, move: Move): Board {
           draftBoard.squareList[toIndex] = piece;
           draftBoard.hands[piece] -= 1;
         } else {
-          draftBoard.squareList[toIndex] = turnOver(piece);
-          draftBoard.hands[turnOver(piece)] -= 1;
+          const turnOveredPiece = turnOver(piece) as KIND_VALUE;
+          draftBoard.squareList[toIndex] = turnOveredPiece;
+          draftBoard.hands[turnOveredPiece] -= 1;
         }
       }
       return draftBoard;
@@ -186,7 +190,7 @@ export function moveBoard(board: Board, move: Move): Board {
         ? (toPiece.slice(1.2) as KIND_VALUE)
         : toPiece;
       // not check for piece is opposite
-      draftBoard.hands[turnOver(pieceForHands)] += 1;
+      draftBoard.hands[turnOver(pieceForHands) as KIND_VALUE] += 1;
     }
     const showPromote = move.slice(4, 5);
     if (showPromote === '+') {
@@ -296,4 +300,84 @@ export function getExistPieceFromHands(
       {} as Partial<Hands>,
     );
   return { senteExistHands, goteExistHands };
+}
+
+export function getMovablePoints(board: Board, point: Point): Array<Point> {
+  const piece = selectPiece(board.squareList, point);
+  if (piece === '') {
+    return [];
+  }
+  const isUpper = isUpperPiece(piece);
+  const isOppositePiece = (p: Piece) =>
+    isUpper ? !isUpperPiece(p) : isUpperPiece(p);
+  const key = isUpper
+    ? (piece as UPPERCASE_PIECE)
+    : (turnOver(piece) as UPPERCASE_PIECE);
+  const movableRelativePositions = MOVABLE_RELATIVE_POSITIONS[key];
+  return movableRelativePositions.reduce((acc, positionCandidates) => {
+    const results = [] as Array<Point>;
+    for (const relativePoints of positionCandidates) {
+      // shogi board is (x,y) starts upper right
+      const x = isUpper
+        ? point.x - relativePoints[0]
+        : point.x + relativePoints[0];
+      const y = isUpper
+        ? point.y - relativePoints[1]
+        : point.y + relativePoints[1];
+      if (x > 9 || x < 1 || y > 9 || y < 1) {
+        continue;
+      }
+      const piece = selectPiece(board.squareList, { x, y });
+      if (piece === '') {
+        results.push({ x, y });
+      } else if (isOppositePiece(piece)) {
+        results.push({ x, y });
+        break;
+      } else {
+        break;
+      }
+    }
+    return [...acc, ...results];
+  }, [] as Array<Point>);
+}
+
+export function getDropablePoints(board: Board, piece: Piece): Array<Point> {
+  return board.squareList.reduce((acc, square, index) => {
+    const point = getPointFromIndex(index);
+    if (
+      square ||
+      isNifu(board.squareList, point, piece) ||
+      cannotMoreMove(point, piece)
+    ) {
+      return acc;
+    } else {
+      return [...acc, point];
+    }
+  }, [] as Array<Point>);
+}
+
+function isNifu(squareList: SquareList, point: Point, piece: Piece): boolean {
+  if (piece !== LOWERCASE_KIND.FU && piece !== UPPERCASE_KIND.FU) {
+    return false;
+  }
+  return squareList
+    .filter((_, index) => getPointFromIndex(index).x === point.x)
+    .some((square) => square === piece);
+}
+
+function cannotMoreMove(point: Point, piece: Piece): boolean {
+  switch (piece) {
+    case UPPERCASE_KIND.FU:
+    case UPPERCASE_KIND.KYOSHA:
+      return point.y === 1;
+    case UPPERCASE_KIND.KEIMA:
+      return point.y <= 2;
+    case LOWERCASE_KIND.FU:
+    case LOWERCASE_KIND.KYOSHA:
+      return point.y === 9;
+    case LOWERCASE_KIND.KEIMA:
+      return point.y >= 8;
+    default:
+      return false;
+  }
 }

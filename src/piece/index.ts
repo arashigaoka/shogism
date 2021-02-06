@@ -3,10 +3,10 @@ export const LOWERCASE_KIND = {
   KYOSHA: 'l',
   KEIMA: 'n',
   GIN: 's',
-  KIN: 'k',
+  KIN: 'g',
   KAKU: 'b',
   FI: 'r',
-  OU: 'g',
+  OU: 'k',
 } as const;
 export type LOWERCASE_KIND_VALUE = typeof LOWERCASE_KIND[keyof typeof LOWERCASE_KIND];
 export function isLowerCaseKindValue(
@@ -15,17 +15,15 @@ export function isLowerCaseKindValue(
   return Object.values(LOWERCASE_KIND).some((kind) => kind === target);
 }
 
-export const UPPERCASE_KIND: {
-  [key in keyof typeof LOWERCASE_KIND]: Uppercase<LOWERCASE_KIND_VALUE>;
-} = {
+export const UPPERCASE_KIND = {
   FU: 'P',
   KYOSHA: 'L',
   KEIMA: 'N',
   GIN: 'S',
-  KIN: 'K',
+  KIN: 'G',
   KAKU: 'B',
   FI: 'R',
-  OU: 'G',
+  OU: 'K',
 } as const;
 export type UPPERCASE_KIND_VALUE = typeof UPPERCASE_KIND[keyof typeof UPPERCASE_KIND];
 export function isUpperCaseKindValue(
@@ -35,7 +33,12 @@ export function isUpperCaseKindValue(
 }
 export type KIND_VALUE = LOWERCASE_KIND_VALUE | UPPERCASE_KIND_VALUE;
 
-type PROMOTABLE_KIND_VALUE = Exclude<KIND_VALUE, 'k' | 'g' | 'K' | 'G'>;
+type PROMOTABLE_LOWER_KIND_VALUE = Exclude<LOWERCASE_KIND_VALUE, 'k' | 'g'>;
+type PROMOTABLE_UPPER_KIND_VALUE = Exclude<UPPERCASE_KIND_VALUE, 'K' | 'G'>;
+
+type PROMOTABLE_KIND_VALUE =
+  | PROMOTABLE_LOWER_KIND_VALUE
+  | PROMOTABLE_UPPER_KIND_VALUE;
 function isPromotableKindValue(
   value: KIND_VALUE,
 ): value is PROMOTABLE_KIND_VALUE {
@@ -47,15 +50,43 @@ function isPromotableKindValue(
   ];
   return !ngKind.includes(value);
 }
+
 export type SHOW_PROMOTE = '+' | '';
 
-export type Piece = `${SHOW_PROMOTE}${KIND_VALUE}`;
+export const PROMOTED_LOWER_KIND = {
+  TO: '+p',
+  NARIKYO: '+l',
+  NARIKEI: '+n',
+  NARIGIN: '+s',
+  UMA: '+b',
+  RYU: '+r',
+} as const;
+
+export const PROMOTED_UPPER_KIND = {
+  TO: '+P',
+  NARIKYO: '+L',
+  NARIKEI: '+N',
+  NARIGIN: '+S',
+  UMA: '+B',
+  RYU: '+R',
+} as const;
+
+export type PROMOTED_KIND_VALUE = `+${PROMOTABLE_KIND_VALUE}`;
+
+export type Piece = KIND_VALUE | PROMOTED_KIND_VALUE;
 export function isPiece(str: string): str is Piece {
   const target = str && str.startsWith('+') ? str.slice(1) : str;
   return isLowerCaseKindValue(target) || isUpperCaseKindValue(target);
 }
 export function isKindValue(piece: Piece): piece is KIND_VALUE {
   return !piece.startsWith('+');
+}
+
+export type UPPERCASE_PIECE =
+  | UPPERCASE_KIND_VALUE
+  | `+${PROMOTABLE_UPPER_KIND_VALUE}`;
+export function isUpperPiece(piece: Piece): piece is UPPERCASE_PIECE {
+  return Object.values(UPPERCASE_KIND).some((kind) => piece.includes(kind));
 }
 
 export function turnOver(piece: Piece): Piece {
