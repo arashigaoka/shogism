@@ -39,7 +39,7 @@ type PROMOTABLE_UPPER_KIND_VALUE = Exclude<UPPERCASE_KIND_VALUE, 'K' | 'G'>;
 type PROMOTABLE_KIND_VALUE =
   | PROMOTABLE_LOWER_KIND_VALUE
   | PROMOTABLE_UPPER_KIND_VALUE;
-function isPromotableKindValue(
+export function isPromotableKindValue(
   value: KIND_VALUE,
 ): value is PROMOTABLE_KIND_VALUE {
   const ngKind: Array<KIND_VALUE> = [
