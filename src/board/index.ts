@@ -12,6 +12,8 @@ import {
   UPPERCASE_KIND_VALUE,
   isUpperPiece,
   UPPERCASE_PIECE,
+  isLowerCaseKindValue,
+  isPromotableKindValue,
 } from '../piece';
 import { MOVABLE_RELATIVE_POSITIONS } from '../piece/moves';
 import {
@@ -379,5 +381,20 @@ function cannotMoreMove(point: Point, piece: Piece): boolean {
       return point.y >= 8;
     default:
       return false;
+  }
+}
+
+export function canPromote(piece: Piece, index: number): boolean {
+  if (piece.includes('+')) {
+    return false;
+  }
+  if (!isPromotableKindValue(piece as KIND_VALUE)) {
+    return false;
+  }
+  const point: Point = getPointFromIndex(index);
+  if (isLowerCaseKindValue(piece)) {
+    return point.y >= 7;
+  } else {
+    return point.y <= 3;
   }
 }

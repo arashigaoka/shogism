@@ -18,6 +18,7 @@ import {
   getExistPieceFromHands,
   getMovablePoints,
   getDropablePoints,
+  canPromote,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {
@@ -448,5 +449,17 @@ describe('getDropablePositions', () => {
     });
     const positions = getDropablePoints(board, 'n');
     expect(positions.length).toBe(63);
+  });
+});
+
+describe('can promote', () => {
+  test('success', () => {
+    expect(canPromote('B', 12)).toBeTruthy();
+    expect(canPromote('b', 64)).toBeTruthy();
+  });
+  test('failure', () => {
+    expect(canPromote('B', 28)).toBeFalsy();
+    expect(canPromote('+L', 12)).toBeFalsy();
+    expect(canPromote('K', 12)).toBeFalsy();
   });
 });
