@@ -6,7 +6,7 @@ import {
 } from '../board';
 import { Move, Y_AXIS } from '../board/types';
 import { FinishTrigger, Header, Kifu } from '../kifu/types';
-import { Piece, UPPERCASE_KIND } from '../piece';
+import { Piece, UPPERCASE_KIND, PROMOTED_UPPER_KIND } from '../piece';
 const KifToSfen = {
   歩: UPPERCASE_KIND.FU,
   香: UPPERCASE_KIND.KYOSHA,
@@ -17,6 +17,22 @@ const KifToSfen = {
   飛: UPPERCASE_KIND.FI,
 };
 type KifToSfen = { [key: string]: Piece };
+export const SfenToKif = {
+  [UPPERCASE_KIND.FU]: '歩',
+  [UPPERCASE_KIND.KYOSHA]: '香',
+  [UPPERCASE_KIND.KEIMA]: '桂',
+  [UPPERCASE_KIND.GIN]: '銀',
+  [UPPERCASE_KIND.KIN]: '金',
+  [UPPERCASE_KIND.KAKU]: '角',
+  [UPPERCASE_KIND.FI]: '飛',
+  [UPPERCASE_KIND.OU]: '玉',
+  [PROMOTED_UPPER_KIND.TO]: 'と',
+  [PROMOTED_UPPER_KIND.NARIKYO]: '成香',
+  [PROMOTED_UPPER_KIND.NARIKEI]: '成桂',
+  [PROMOTED_UPPER_KIND.NARIGIN]: '成銀',
+  [PROMOTED_UPPER_KIND.UMA]: '馬',
+  [PROMOTED_UPPER_KIND.RYU]: '龍',
+};
 const ChineseNumber = {
   一: 1,
   二: 2,
@@ -28,6 +44,9 @@ const ChineseNumber = {
   八: 8,
   九: 9,
 };
+export function getChineseNumber(num: number): string | undefined {
+  return Object.entries(ChineseNumber).find(([, value]) => value === num)?.[0];
+}
 
 type Comment = {
   comment: string;
@@ -97,9 +116,15 @@ export function parseKifMove(
 }
 
 function convertZenToHan(str: string): string {
-  return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
+  return str.replace(/[０-９]/g, (s) =>
     String.fromCharCode(s.charCodeAt(0) - 0xfee0),
   );
+}
+
+export function convertHanToZen(str: string): string {
+  return str.replace(/[0-9]/g, function (s) {
+    return String.fromCharCode(s.charCodeAt(0) + 0xfee0);
+  });
 }
 
 function parseKifHeader(line: string): Header | undefined {
