@@ -1,6 +1,10 @@
 import { initBoard, toPrettierString } from '../board';
 import { INITIAL_BOARD } from '../board/types';
-import { getFirstIndexOfMatchedBoard, initKifuFromSfen } from '../kifu';
+import {
+  getFirstIndexOfMatchedBoard,
+  getReadableMove,
+  initKifuFromSfen,
+} from '../kifu';
 
 describe('initKifu', () => {
   test('init by startpos', () => {
@@ -44,6 +48,16 @@ LNSGKGSNL
     const lastBoard = kifu.boardList[kifu.boardList.length - 1];
     expect(lastBoard.hands['p']).toBe(4);
   });
+});
+describe('get Readable Move', () => {
+  const moveStr = '7g7f 3c3d 8h2b+ B*3c 2b3a 4a3a';
+  const kifu = initKifuFromSfen(undefined, moveStr);
+  expect(getReadableMove(kifu, 0)).toBe('７六歩(77)');
+  expect(getReadableMove(kifu, 1)).toBe('３四歩(33)');
+  expect(getReadableMove(kifu, 2)).toBe('２二角成(88)');
+  expect(getReadableMove(kifu, 3)).toBe('３三角打');
+  expect(getReadableMove(kifu, 4)).toBe('３一馬(22)');
+  expect(getReadableMove(kifu, 5)).toBe('同　金(41)');
 });
 describe('search kifu', () => {
   test('searchKif', () => {

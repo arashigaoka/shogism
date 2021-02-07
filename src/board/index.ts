@@ -102,7 +102,7 @@ export function getIndex({ x, y }: { x: number; y: number }): number {
   return 9 - x + (y - 1) * 9;
 }
 
-function getPointFromSfen(sfenPointSelector: SfenPointSelector) {
+export function getPointFromSfen(sfenPointSelector: SfenPointSelector): Point {
   const xAxis = Number(sfenPointSelector.slice(0, 1)) as X_AXIS;
   const yAxis = sfenPointSelector.slice(1, 2) as keyof typeof Y_AXIS;
   return { x: xAxis, y: Y_AXIS[yAxis] };
