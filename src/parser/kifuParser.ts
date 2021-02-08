@@ -81,7 +81,7 @@ export function parseKifMove(
     const move = createHorizontalMove({ from, to, promote });
     return move;
   }
-  const horizontalMoveGetBackPattern = /同[ |　]*([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)\(\d{2}/;
+  const horizontalMoveGetBackPattern = /同[ |　]*([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
   const getBackValue = move.match(horizontalMoveGetBackPattern);
   if (getBackValue) {
     if (!prevMove) {
