@@ -66,6 +66,7 @@ export function isVerticalMove(str: string): str is VerticalMove {
   return false;
 }
 // export type Move = HorizontalMove | VerticalMove;
+// avoid warning 'Expression produces a union type that is too complex to represent'
 export type Move = string;
 export function isMove(str: string): str is Move {
   return isVerticalMove(str) || isHorizontalMove(str);

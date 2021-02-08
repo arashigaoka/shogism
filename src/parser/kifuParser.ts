@@ -4,7 +4,7 @@ import {
   initBoard,
   moveBoard,
 } from '../board';
-import { Move, Y_AXIS } from '../board/types';
+import { Board, Move, Y_AXIS } from '../board/types';
 import { getReadableMove } from '../kifu';
 import { FinishTrigger, Header, Kifu, KifuMove } from '../kifu/types';
 import { Piece, UPPERCASE_KIND, PROMOTED_UPPER_KIND } from '../piece';
@@ -147,7 +147,7 @@ export function parseKIF(kifStr: string): Kifu {
     .filter((line) => line && !line.startsWith('#'))
     .reduce(
       (acc, line) => {
-        const { boardList, header, moves, finishTrigger } = acc;
+        const { boardList, header, kifuMoves, finishTrigger } = acc;
         if (isHeader(line)) {
           const newHeader = parseKifHeader(line);
           if (newHeader) {
@@ -162,7 +162,7 @@ export function parseKIF(kifStr: string): Kifu {
             return { ...acc, finishTrigger: triggerIfMatch };
           }
         }
-        const lastMoveSfen = moves[moves.length - 1]?.sfen;
+        const lastMoveSfen = kifuMoves[kifuMoves.length - 1]?.sfen;
         const moveOrComment = parseKifMove(line, lastMoveSfen);
         if (!moveOrComment) {
           return acc;
@@ -174,7 +174,7 @@ export function parseKIF(kifStr: string): Kifu {
             currentMove: moveOrComment,
             prevMove: lastMoveSfen,
           });
-          moves.push({ kif, sfen: moveOrComment });
+          kifuMoves.push({ kif, sfen: moveOrComment });
           const newBoard = moveBoard(lastBoard, moveOrComment);
           return { ...acc, boardList: [...boardList, newBoard] };
         } else {
@@ -190,7 +190,7 @@ export function parseKIF(kifStr: string): Kifu {
       },
       {
         boardList: [board],
-        moves: [] as Array<KifuMove>,
+        kifuMoves: [] as Array<KifuMove>,
         header: undefined as Header | undefined,
         finishTrigger: undefined as FinishTrigger | undefined,
       },
@@ -210,4 +210,68 @@ function getFinishTriggerIfMatch(line: string): FinishTrigger | null {
     }
   });
   return finishTrigger;
+}
+
+export function exportKIF(kifu: Kifu): string {
+  const headerStr = exportHeader(kifu.header);
+  const moveStr = exportMovesAndComments({
+    readableMoves: kifu.kifuMoves.map((move) => move.kif),
+    comments: kifu.boardList.map((board) => board.comment),
+  });
+  const finishStr = exportFinishTrigger(
+    kifu.kifuMoves.length,
+    kifu.finishTrigger,
+  );
+  return [headerStr, moveStr, finishStr].join('\n');
+}
+
+function exportHeader(header?: Header) {
+  const teai = '手合割：平手';
+  const sente = `先手:${header?.sente || '先手'}`;
+  const gote = `後手:${header?.sente || '後手'}`;
+  return [teai, sente, gote].join('\n');
+}
+
+function exportMovesAndComments({
+  readableMoves,
+  comments,
+}: {
+  readableMoves: Array<Move>;
+  comments: Array<string | undefined>;
+}) {
+  const loopNum = comments.length;
+  const movesAndComments = [...new Array(loopNum)]
+    .map((_, index) => {
+      if (index === 0) {
+        // user can input comments for initial boards
+        return exportComment(comments[0]);
+      }
+      const move = `${index} ${readableMoves[index - 1]} (0:00/00:00:00)`;
+      const comment = exportComment(comments[index]);
+      return [move, comment].filter((v) => v).join('\n');
+    })
+    .filter((v) => v)
+    .join('\n');
+  return ['手数----指手---------消費時間--', movesAndComments].join('\n');
+}
+
+function exportComment(comment: string | undefined): string | null {
+  if (!comment) {
+    return null;
+  }
+  return comment
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((str) => `*${str}`)
+    .join('\n');
+}
+
+function exportFinishTrigger(
+  index: number,
+  finishTrigger?: FinishTrigger,
+): string {
+  if (!finishTrigger) {
+    return '';
+  }
+  return `まで${index}手で${finishTrigger}`;
 }

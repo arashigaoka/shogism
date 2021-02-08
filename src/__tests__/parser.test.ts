@@ -1,7 +1,9 @@
 import { toPrettierString } from '../board';
 import { FinishTrigger } from '../kifu/types';
-import { parseKIF, parseKifMove } from '../parser/kifuParser';
+import { exportKIF, parseKIF, parseKifMove } from '../parser/kifuParser';
 import fs from 'fs';
+import { initKifuFromSfen } from '../kifu';
+import { INITIAL_BOARD } from '../board/types';
 
 describe('parse move', () => {
   test('parse kif to horizontal move', () => {
@@ -35,7 +37,7 @@ describe('parse kif input', () => {
     const data = parseKIF(
       '1 ７六歩(77) (0:01/00:00:01)\n2 ３四歩(33) (0:02/00:00:02)\n3 ２二角成(88) (0:20/00:00:21)\n 4 同　銀(31) (0:03/00:00:05)\n5 ４五角打 (0:39/00:01:00)\n',
     );
-    expect(data.moves.length).toBe(5);
+    expect(data.kifuMoves.length).toBe(5);
     expect(data.boardList.length).toBe(6);
     const lastBoard = data.boardList[data.boardList.length - 1];
     const prettierString = `lnsgkg.nl
@@ -63,7 +65,7 @@ LNSGKGSNL
    4 ８五歩(84)   ( 0:02/00:00:03)
    5 ７七角(88)   ( 0:01/00:00:04)
     `);
-    expect(data.moves.length).toBe(5);
+    expect(data.kifuMoves.length).toBe(5);
     expect(data.boardList.length).toBe(6);
     expect(data.boardList[0].comment).toBe('start\nstart2');
   });
@@ -91,8 +93,29 @@ LNSGKGSNL
       encoding: 'utf-8',
     });
     const data = parseKIF(text);
-    expect(data.moves.length).toBe(131);
-    expect(data.moves[130]).toStrictEqual({ sfen: '3g2f', kif: '２六玉(37)' });
+    expect(data.kifuMoves.length).toBe(131);
+    expect(data.kifuMoves[130]).toStrictEqual({
+      sfen: '3g2f',
+      kif: '２六玉(37)',
+    });
     expect(data.finishTrigger).toBe(FinishTrigger['投了']);
   });
+});
+
+describe('export kif', () => {
+  const kifu = initKifuFromSfen(
+    INITIAL_BOARD.HIRATE,
+    '7g7f 3c3d 8h2b+ 3a2b B*4e',
+  );
+  const kif = exportKIF({ ...kifu, finishTrigger: FinishTrigger['投了'] });
+  expect(kif).toBe(`手合割：平手
+先手:先手
+後手:後手
+手数----指手---------消費時間--
+1 ７六歩(77) (0:00/00:00:00)
+2 ３四歩(33) (0:00/00:00:00)
+3 ２二角成(88) (0:00/00:00:00)
+4 同　銀(31) (0:00/00:00:00)
+5 ４五角打 (0:00/00:00:00)
+まで5手で投了`);
 });

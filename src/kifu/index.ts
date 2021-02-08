@@ -18,6 +18,7 @@ import {
   getChineseNumber,
   SfenToKif,
 } from '../parser/kifuParser';
+import produce from 'immer';
 
 export function initKifuFromSfen(
   initialInfo?: {
@@ -49,11 +50,11 @@ export function initKifuFromSfen(
       },
       [board],
     );
-    return { boardList, moves };
+    return { boardList, kifuMoves: moves };
   }
   return {
     boardList: [board],
-    moves: [],
+    kifuMoves: [],
   };
 }
 
@@ -118,5 +119,20 @@ export function getFirstIndexOfMatchedBoard(
     return board.squareList.every(
       (square, i) => sfenStr[i] === '' || sfenStr[i] === square,
     );
+  });
+}
+
+export function produceKifu(kifu: Kifu, move: Move): Kifu {
+  return produce(kifu, (draftKifu) => {
+    const lastBoard = kifu.boardList[kifu.boardList.length - 1];
+    const lastKifuMove = kifu.kifuMoves[kifu.kifuMoves.length - 1];
+    const readableMove = getReadableMove({
+      squareList: lastBoard.squareList,
+      prevMove: lastKifuMove?.sfen,
+      currentMove: move,
+    });
+    draftKifu.kifuMoves.push({ kif: readableMove, sfen: move });
+    const newBoard = moveBoard(lastBoard, move);
+    draftKifu.boardList.push(newBoard);
   });
 }

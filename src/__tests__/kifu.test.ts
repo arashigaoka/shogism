@@ -4,13 +4,14 @@ import {
   getFirstIndexOfMatchedBoard,
   getReadableMove,
   initKifuFromSfen,
+  produceKifu,
 } from '../kifu';
 
 describe('initKifu', () => {
   test('init by startpos', () => {
     const kifu = initKifuFromSfen();
     expect(kifu.boardList.length).toBe(1);
-    expect(kifu.moves.length).toBe(0);
+    expect(kifu.kifuMoves.length).toBe(0);
   });
   test('init by whiteboard', () => {
     const kifu = initKifuFromSfen(INITIAL_BOARD.NOPIECE);
@@ -22,9 +23,9 @@ describe('initKifu', () => {
   test('init by startops and moves', () => {
     const moveStr = '7g7f 3c3d 8h2b+';
     const kifu = initKifuFromSfen(undefined, moveStr);
-    expect(kifu.moves.length).toBe(3);
-    expect(kifu.moves[2].sfen).toBe('8h2b+');
-    expect(kifu.moves[2].kif).toBe('２二角成(88)');
+    expect(kifu.kifuMoves.length).toBe(3);
+    expect(kifu.kifuMoves[2].sfen).toBe('8h2b+');
+    expect(kifu.kifuMoves[2].kif).toBe('２二角成(88)');
     const lastBoard = kifu.boardList[3];
     expect(lastBoard.hands['B']).toBe(1);
 
@@ -104,11 +105,20 @@ describe('get Readable Move', () => {
   ).toBe('同　角成(55)');
 });
 describe('search kifu', () => {
-  test('searchKif', () => {
+  test('success', () => {
     const kifu = initKifuFromSfen();
     const board = initBoard();
     const squareList = board.squareList;
     const index = getFirstIndexOfMatchedBoard(kifu, squareList);
     expect(index).toBe(0);
+  });
+});
+
+describe('produceKifu', () => {
+  test('success', () => {
+    const kifu = initKifuFromSfen();
+    const newKifu = produceKifu(kifu, '7g7f');
+    expect(newKifu.kifuMoves[0]?.sfen).toBe('7g7f');
+    expect(newKifu.kifuMoves[0]?.kif).toBe('７六歩(77)');
   });
 });
