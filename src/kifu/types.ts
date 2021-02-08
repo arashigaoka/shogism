@@ -6,7 +6,7 @@ export type KifuMove = {
 };
 export type Kifu = {
   boardList: Array<Board>;
-  moves: Array<KifuMove>;
+  kifuMoves: Array<KifuMove>;
   header?: Header;
   finishTrigger?: FinishTrigger;
 };
