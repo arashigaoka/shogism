@@ -5,7 +5,8 @@ import {
   moveBoard,
 } from '../board';
 import { Move, Y_AXIS } from '../board/types';
-import { FinishTrigger, Header, Kifu } from '../kifu/types';
+import { getReadableMove } from '../kifu';
+import { FinishTrigger, Header, Kifu, KifuMove } from '../kifu/types';
 import { Piece, UPPERCASE_KIND, PROMOTED_UPPER_KIND } from '../piece';
 const KifToSfen = {
   歩: UPPERCASE_KIND.FU,
@@ -140,20 +141,17 @@ function parseKifHeader(line: string): Header | undefined {
 
 export function parseKIF(kifStr: string): Kifu {
   const lines = kifStr.replace(/\r\n?/g, '\n').split('\n');
-  const moves = [] as Array<Move>;
-  let prevMove = null as Move | null;
   const board = initBoard();
-  let header = undefined as Header | undefined;
-  let finishTrigger = undefined as FinishTrigger | undefined;
-  const boardList = lines
+  return lines
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith('#'))
     .reduce(
       (acc, line) => {
+        const { boardList, header, moves, finishTrigger } = acc;
         if (isHeader(line)) {
           const newHeader = parseKifHeader(line);
           if (newHeader) {
-            header = { ...header, ...newHeader };
+            return { ...acc, header: { ...header, ...newHeader } };
           }
           return acc;
         }
@@ -161,31 +159,42 @@ export function parseKIF(kifStr: string): Kifu {
         if (!finishTrigger) {
           const triggerIfMatch = getFinishTriggerIfMatch(line);
           if (triggerIfMatch) {
-            finishTrigger = triggerIfMatch;
-            return acc;
+            return { ...acc, finishTrigger: triggerIfMatch };
           }
         }
-        const moveOrComment = parseKifMove(line, prevMove);
+        const lastMoveSfen = moves[moves.length - 1]?.sfen;
+        const moveOrComment = parseKifMove(line, lastMoveSfen);
         if (!moveOrComment) {
           return acc;
         }
-        const lastBoard = acc[acc.length - 1];
+        const lastBoard = boardList[boardList.length - 1];
         if (!isComment(moveOrComment)) {
-          prevMove = moveOrComment;
-          moves.push(moveOrComment);
+          const kif = getReadableMove({
+            squareList: lastBoard.squareList,
+            currentMove: moveOrComment,
+            prevMove: lastMoveSfen,
+          });
+          moves.push({ kif, sfen: moveOrComment });
           const newBoard = moveBoard(lastBoard, moveOrComment);
-          return [...acc, newBoard];
+          return { ...acc, boardList: [...boardList, newBoard] };
         } else {
           const newComment = lastBoard.comment
             ? [lastBoard.comment, moveOrComment.comment].join('\n')
             : moveOrComment.comment;
           const newBoard = { ...lastBoard, comment: newComment };
-          return [...acc.slice(0, acc.length - 1), newBoard];
+          return {
+            ...acc,
+            boardList: [...boardList.slice(0, boardList.length - 1), newBoard],
+          };
         }
       },
-      [board],
+      {
+        boardList: [board],
+        moves: [] as Array<KifuMove>,
+        header: undefined as Header | undefined,
+        finishTrigger: undefined as FinishTrigger | undefined,
+      },
     );
-  return { header, boardList, moves, finishTrigger };
 }
 
 function isHeader(line: string): boolean {

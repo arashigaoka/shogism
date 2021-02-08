@@ -23,6 +23,8 @@ describe('initKifu', () => {
     const moveStr = '7g7f 3c3d 8h2b+';
     const kifu = initKifuFromSfen(undefined, moveStr);
     expect(kifu.moves.length).toBe(3);
+    expect(kifu.moves[2].sfen).toBe('8h2b+');
+    expect(kifu.moves[2].kif).toBe('２二角成(88)');
     const lastBoard = kifu.boardList[3];
     expect(lastBoard.hands['B']).toBe(1);
 
@@ -50,14 +52,56 @@ LNSGKGSNL
   });
 });
 describe('get Readable Move', () => {
-  const moveStr = '7g7f 3c3d 8h2b+ B*3c 2b3a 4a3a';
+  const moveStr = '7g7f 3c3d 8h2b+ B*3c 2b3a 4a3a B*5e 3c2b 5e2b+';
   const kifu = initKifuFromSfen(undefined, moveStr);
-  expect(getReadableMove(kifu, 0)).toBe('７六歩(77)');
-  expect(getReadableMove(kifu, 1)).toBe('３四歩(33)');
-  expect(getReadableMove(kifu, 2)).toBe('２二角成(88)');
-  expect(getReadableMove(kifu, 3)).toBe('３三角打');
-  expect(getReadableMove(kifu, 4)).toBe('３一馬(22)');
-  expect(getReadableMove(kifu, 5)).toBe('同　金(41)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[0].squareList,
+      currentMove: '7g7f',
+    }),
+  ).toBe('７六歩(77)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[1].squareList,
+      currentMove: '3c3d',
+      prevMove: '7g7f',
+    }),
+  ).toBe('３四歩(33)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[2].squareList,
+      currentMove: '8h2b+',
+      prevMove: '3c3d',
+    }),
+  ).toBe('２二角成(88)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[3].squareList,
+      currentMove: 'B*3c',
+      prevMove: '8h2b+',
+    }),
+  ).toBe('３三角打');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[4].squareList,
+      currentMove: '2b3a',
+      prevMove: 'B*3c',
+    }),
+  ).toBe('３一馬(22)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[5].squareList,
+      currentMove: '4a3a',
+      prevMove: '2b3a',
+    }),
+  ).toBe('同　金(41)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[8].squareList,
+      currentMove: '5e2b+',
+      prevMove: '3c2b',
+    }),
+  ).toBe('同　角成(55)');
 });
 describe('search kifu', () => {
   test('searchKif', () => {

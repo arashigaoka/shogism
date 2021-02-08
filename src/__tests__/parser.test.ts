@@ -92,5 +92,7 @@ LNSGKGSNL
     });
     const data = parseKIF(text);
     expect(data.moves.length).toBe(131);
+    expect(data.moves[130]).toStrictEqual({ sfen: '3g2f', kif: '２六玉(37)' });
+    expect(data.finishTrigger).toBe(FinishTrigger['投了']);
   });
 });
