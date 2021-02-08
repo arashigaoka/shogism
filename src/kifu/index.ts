@@ -12,7 +12,7 @@ import {
   SfenPointSelector,
   SquareList,
 } from '../board/types';
-import { Kifu } from './types';
+import { Kifu, KifuMove } from './types';
 import {
   convertHanToZen,
   getChineseNumber,
@@ -29,15 +29,21 @@ export function initKifuFromSfen(
 ): Kifu {
   const board = initBoard(initialInfo);
   if (moveStr) {
-    const moves: Array<Move> = [];
+    const moves: Array<KifuMove> = [];
     const boardList = moveStr.split(' ').reduce(
-      (acc, move) => {
-        if (!isMove(move)) {
-          throw new Error(`${move} is invalid move`);
+      (acc, sfenMove) => {
+        if (!isMove(sfenMove)) {
+          throw new Error(`${sfenMove} is invalid move`);
         } else {
-          moves.push(move);
-          const board = acc[acc.length - 1];
-          const newBoard = moveBoard(board, move);
+          const lastBoard = acc[acc.length - 1];
+          const lastMove = moves[moves.length - 1]?.sfen;
+          const kif = getReadableMove({
+            squareList: lastBoard.squareList,
+            currentMove: sfenMove,
+            prevMove: lastMove,
+          });
+          moves.push({ kif, sfen: sfenMove });
+          const newBoard = moveBoard(lastBoard, sfenMove);
           return [...acc, newBoard];
         }
       },
@@ -51,35 +57,39 @@ export function initKifuFromSfen(
   };
 }
 
-export function getReadableMove(kifu: Kifu, index: number): string {
-  const { moves, boardList } = kifu;
-  const targetMove = moves[index];
-  if (!targetMove) {
-    return '';
-  }
-  const prevMove = moves[index - 1];
-  if (isVerticalMove(targetMove)) {
-    const piece = targetMove.slice(0, 1) as UPPERCASE_KIND_VALUE;
-    const toSfen = targetMove.slice(2, 4) as SfenPointSelector;
+export function getReadableMove({
+  squareList,
+  currentMove,
+  prevMove,
+}: {
+  squareList: SquareList;
+  currentMove: Move;
+  prevMove?: Move;
+}): string {
+  if (isVerticalMove(currentMove)) {
+    const piece = currentMove.slice(0, 1) as UPPERCASE_KIND_VALUE;
+    const toSfen = currentMove.slice(2, 4) as SfenPointSelector;
     const toPoint = getPointFromSfen(toSfen);
     return `${convertHanToZen(toPoint.x.toString())}${getChineseNumber(
       toPoint.y,
     )}${SfenToKif[piece]}打`;
   } else {
-    const fromSfen = targetMove.slice(0, 2) as SfenPointSelector;
+    const fromSfen = currentMove.slice(0, 2) as SfenPointSelector;
     const fromPoint = getPointFromSfen(fromSfen);
-    const toSfen = targetMove.slice(2, 4) as SfenPointSelector;
+    const toSfen = currentMove.slice(2, 4) as SfenPointSelector;
     const toPoint = getPointFromSfen(toSfen);
-    const piece = selectPiece(boardList[index].squareList, fromPoint);
+    const piece = selectPiece(squareList, fromPoint);
     if (!piece) {
       throw Error('invalid Kifu');
     }
     const UpperPiece = isUpperPiece(piece)
       ? piece
       : (turnOver(piece) as UPPERCASE_PIECE);
-    const promote = targetMove.slice(4, 5) === '+';
-    if (prevMove && isSameMove(prevMove, targetMove)) {
-      return `同　${SfenToKif[UpperPiece]}(${fromPoint.x}${fromPoint.y})`;
+    const promote = currentMove.slice(4, 5) === '+';
+    if (prevMove && isSameMove(prevMove, currentMove)) {
+      return `同　${SfenToKif[UpperPiece]}${promote ? '成' : ''}(${
+        fromPoint.x
+      }${fromPoint.y})`;
     } else {
       return `${convertHanToZen(toPoint.x.toString())}${getChineseNumber(
         toPoint.y,

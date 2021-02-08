@@ -1,8 +1,12 @@
 import { Board, Move } from '../board/types';
 
+export type KifuMove = {
+  sfen: Move;
+  kif: string;
+};
 export type Kifu = {
   boardList: Array<Board>;
-  moves: Array<Move>;
+  moves: Array<KifuMove>;
   header?: Header;
   finishTrigger?: FinishTrigger;
 };
