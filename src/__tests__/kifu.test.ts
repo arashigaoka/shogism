@@ -1,4 +1,4 @@
-import { initBoard, toPrettierString } from '../board';
+import { initBoard, initSquare, toPrettierString } from '../board';
 import { INITIAL_BOARD } from '../board/types';
 import {
   getFirstIndexOfMatchedBoard,
@@ -121,7 +121,29 @@ describe('produceKifu', () => {
     expect(newKifu.kifuMoves[0]?.sfen).toBe('7g7f');
     expect(newKifu.kifuMoves[0]?.kif).toBe('７六歩(77)');
     const newKifu2 = produceKifu(newKifu, '2g2f', 0);
+    expect(newKifu2.boardList[0].squareList).toStrictEqual(
+      initSquare(INITIAL_BOARD.HIRATE.squareStr),
+    );
     expect(newKifu2.kifuMoves[0]?.sfen).toBe('2g2f');
     expect(newKifu2.kifuMoves[0]?.kif).toBe('２六歩(27)');
+    const prettierString = `lnsgkgsnl
+.r.....b.
+ppppppppp
+.........
+.........
+.......P.
+PPPPPPP.P
+.B.....R.
+LNSGKGSNL
+`;
+    expect(toPrettierString(newKifu2.boardList[1].squareList)).toBe(
+      prettierString,
+    );
+  });
+  test('update', () => {
+    const moveStr = '7g7f 3c3d 8h2b+ B*3c 2b3a 4a3a B*5e 3c2b 5e2b+';
+    const kifu = initKifuFromSfen(undefined, moveStr);
+    const newKifu = produceKifu(kifu, '3a2b', 3);
+    expect(newKifu.kifuMoves[3]?.sfen).toBe('3a2b');
   });
 });

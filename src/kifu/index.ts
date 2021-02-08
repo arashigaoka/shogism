@@ -129,17 +129,17 @@ export function produceKifu(kifu: Kifu, move: Move, moveNum?: number): Kifu {
   return produce(kifu, (draftKifu) => {
     const index = moveNum != null ? moveNum : kifu.boardList.length - 1;
     const prevBoard = kifu.boardList[index];
-    const prevMove = kifu.kifuMoves[index];
+    const prevMove = kifu.kifuMoves[index - 1];
     const readableMove = getReadableMove({
       squareList: prevBoard.squareList,
       prevMove: prevMove?.sfen,
       currentMove: move,
     });
     draftKifu.kifuMoves = [
-      ...kifu.kifuMoves.slice(0, index),
+      ...(index > 0 ? kifu.kifuMoves.slice(0, index) : []),
       { kif: readableMove, sfen: move },
     ];
     const newBoard = moveBoard(prevBoard, move);
-    draftKifu.boardList = [...kifu.boardList.slice(0, index), newBoard];
+    draftKifu.boardList = [...kifu.boardList.slice(0, index + 1), newBoard];
   });
 }
