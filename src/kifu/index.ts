@@ -122,17 +122,24 @@ export function getFirstIndexOfMatchedBoard(
   });
 }
 
-export function produceKifu(kifu: Kifu, move: Move): Kifu {
+export function produceKifu(kifu: Kifu, move: Move, moveNum?: number): Kifu {
+  if (moveNum && moveNum > kifu.boardList.length - 1) {
+    throw Error('out of bounds');
+  }
   return produce(kifu, (draftKifu) => {
-    const lastBoard = kifu.boardList[kifu.boardList.length - 1];
-    const lastKifuMove = kifu.kifuMoves[kifu.kifuMoves.length - 1];
+    const index = moveNum != null ? moveNum : kifu.boardList.length - 1;
+    const prevBoard = kifu.boardList[index];
+    const prevMove = kifu.kifuMoves[index];
     const readableMove = getReadableMove({
-      squareList: lastBoard.squareList,
-      prevMove: lastKifuMove?.sfen,
+      squareList: prevBoard.squareList,
+      prevMove: prevMove?.sfen,
       currentMove: move,
     });
-    draftKifu.kifuMoves.push({ kif: readableMove, sfen: move });
-    const newBoard = moveBoard(lastBoard, move);
-    draftKifu.boardList.push(newBoard);
+    draftKifu.kifuMoves = [
+      ...kifu.kifuMoves.slice(0, index),
+      { kif: readableMove, sfen: move },
+    ];
+    const newBoard = moveBoard(prevBoard, move);
+    draftKifu.boardList = [...kifu.boardList.slice(0, index), newBoard];
   });
 }

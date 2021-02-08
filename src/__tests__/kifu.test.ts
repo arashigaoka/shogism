@@ -120,5 +120,8 @@ describe('produceKifu', () => {
     const newKifu = produceKifu(kifu, '7g7f');
     expect(newKifu.kifuMoves[0]?.sfen).toBe('7g7f');
     expect(newKifu.kifuMoves[0]?.kif).toBe('７六歩(77)');
+    const newKifu2 = produceKifu(newKifu, '2g2f', 0);
+    expect(newKifu2.kifuMoves[0]?.sfen).toBe('2g2f');
+    expect(newKifu2.kifuMoves[0]?.kif).toBe('２六歩(27)');
   });
 });
