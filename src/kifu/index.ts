@@ -27,6 +27,7 @@ export function initKifuFromSfen(
     handsStr: string;
   },
   moveStr?: string,
+  boardEditing = false,
 ): Kifu {
   const board = initBoard(initialInfo);
   if (moveStr) {
@@ -50,11 +51,12 @@ export function initKifuFromSfen(
       },
       [board],
     );
-    return { boardList, kifuMoves: moves };
+    return { boardList, kifuMoves: moves, boardEditing };
   }
   return {
     boardList: [board],
     kifuMoves: [],
+    boardEditing,
   };
 }
 
@@ -127,6 +129,7 @@ export function produceKifu(kifu: Kifu, move: Move, moveNum?: number): Kifu {
     throw Error('out of bounds');
   }
   return produce(kifu, (draftKifu) => {
+    // If moveNum is not specified newMove is inserted at last position
     const index = moveNum != null ? moveNum : kifu.boardList.length - 1;
     const prevBoard = kifu.boardList[index];
     const prevMove = kifu.kifuMoves[index - 1];
@@ -136,10 +139,10 @@ export function produceKifu(kifu: Kifu, move: Move, moveNum?: number): Kifu {
       currentMove: move,
     });
     draftKifu.kifuMoves = [
-      ...(index > 0 ? kifu.kifuMoves.slice(0, index) : []),
+      ...kifu.kifuMoves.slice(0, index),
       { kif: readableMove, sfen: move },
     ];
-    const newBoard = moveBoard(prevBoard, move);
+    const newBoard = moveBoard(prevBoard, move, kifu.boardEditing);
     draftKifu.boardList = [...kifu.boardList.slice(0, index + 1), newBoard];
   });
 }
