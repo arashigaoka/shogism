@@ -125,11 +125,15 @@ export function initHands(handsStr: string): Hands {
       if (index === 0) {
         return { ...acc, [value]: 1 };
       }
-      const num = Number(handsStr[index - 1]);
-      if (isNaN(num)) {
-        return { ...acc, [value]: 1 };
+      const doubleDigitNum = Number(handsStr.substring(index - 2, index));
+      if (!isNaN(doubleDigitNum)) {
+        return { ...acc, [value]: doubleDigitNum };
+      }
+      const singleDigitNum = Number(handsStr[index - 1]);
+      if (!isNaN(singleDigitNum)) {
+        return { ...acc, [value]: singleDigitNum };
       } else {
-        return { ...acc, [value]: num };
+        return { ...acc, [value]: 1 };
       }
     },
     {} as Hands,
@@ -142,22 +146,24 @@ export function initBoard(
     squareStr,
     handsStr,
     turn,
-    editMode = false,
   }: {
     squareStr: string;
     handsStr: string;
     turn: string;
-    editMode?: boolean;
   } = INITIAL_BOARD.HIRATE,
 ): Board {
   const squareList = initSquare(squareStr);
   const hands = initHands(handsStr);
   const isSenteTurn = turn === 'w';
-  return { squareList, hands, isSenteTurn, editMode };
+  return { squareList, hands, isSenteTurn };
 }
-export function moveBoard(board: Board, move: Move): Board {
+export function moveBoard(
+  board: Board,
+  move: Move,
+  boardEditing = false,
+): Board {
   return produce(board, (draftBoard) => {
-    if (!board.editMode) {
+    if (!boardEditing) {
       draftBoard.isSenteTurn = !board.isSenteTurn;
     }
     if (move.slice(1, 2) === '*') {

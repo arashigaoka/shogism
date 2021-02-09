@@ -16,7 +16,7 @@ describe('initKifu', () => {
   test('init by whiteboard', () => {
     const kifu = initKifuFromSfen(INITIAL_BOARD.NOPIECE);
     const board = kifu.boardList[0];
-    expect(board.hands['P']).toBe(9);
+    expect(board.hands['P']).toBe(18);
     expect(board.squareList.join('').length).toBe(0);
     expect(board.isSenteTurn).toBeTruthy();
   });
@@ -145,5 +145,23 @@ LNSGKGSNL
     const kifu = initKifuFromSfen(undefined, moveStr);
     const newKifu = produceKifu(kifu, '3a2b', 3);
     expect(newKifu.kifuMoves[3]?.sfen).toBe('3a2b');
+  });
+  test('boardEditing', () => {
+    const kifu = initKifuFromSfen(INITIAL_BOARD.NOPIECE, undefined, true);
+    const newKifu = produceKifu(kifu, 'P*5e');
+    const newKifu2 = produceKifu(newKifu, 'P*5a');
+    const prettierString = `....P....
+.........
+.........
+.........
+....P....
+.........
+.........
+.........
+.........
+`;
+    expect(toPrettierString(newKifu2.boardList[2].squareList)).toBe(
+      prettierString,
+    );
   });
 });

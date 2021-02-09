@@ -80,7 +80,6 @@ export type Board = {
   readonly squareList: SquareList;
   readonly hands: Hands;
   readonly isSenteTurn: boolean;
-  editMode?: boolean;
   comment?: string;
 };
 export const INITIAL_BOARD = {
@@ -91,7 +90,7 @@ export const INITIAL_BOARD = {
   },
   NOPIECE: {
     squareStr: '9/9/9/9/9/9/9/9/9',
-    handsStr: 'KRB2G2S2N2L9Pkrb2g2s2n2l9p',
+    handsStr: 'K2R2B4G4S4N4L18P',
     turn: 'w',
   },
 };

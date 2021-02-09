@@ -9,6 +9,7 @@ export type Kifu = {
   kifuMoves: Array<KifuMove>;
   header?: Header;
   finishTrigger?: FinishTrigger;
+  boardEditing?: boolean;
 };
 
 export type Header = {
