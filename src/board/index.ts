@@ -1,6 +1,6 @@
 import produce from 'immer';
 import {
-  flip,
+  turnOver,
   isKindValue,
   isPiece,
   isUpperCaseKindValue,
@@ -10,14 +10,22 @@ import {
   SHOW_PROMOTE,
   UPPERCASE_KIND,
   UPPERCASE_KIND_VALUE,
+  isUpperPiece,
+  UPPERCASE_PIECE,
+  isLowerCaseKindValue,
+  isPromotableKindValue,
 } from '../piece';
+import { MOVABLE_RELATIVE_POSITIONS } from '../piece/moves';
 import {
   Board,
   Hands,
   HorizontalMove,
+  INITIAL_BOARD,
   isHorizontalMove,
+  isPoint,
   isVerticalMove,
   Move,
+  Point,
   SfenPointSelector,
   SquareList,
   VerticalMove,
@@ -87,17 +95,22 @@ export function selectPiece(
   return squareList[index];
 }
 
-function getIndex({ x, y }: { x: number; y: number }): number {
+export function getIndex({ x, y }: { x: number; y: number }): number {
   if (x < 1 || x > 9 || y < 1 || y > 9) {
     throw new Error('selected Position is out of bounds');
   }
   return 9 - x + (y - 1) * 9;
 }
 
-function getPoint(sfenPointSelector: SfenPointSelector) {
+export function getPointFromSfen(sfenPointSelector: SfenPointSelector): Point {
   const xAxis = Number(sfenPointSelector.slice(0, 1)) as X_AXIS;
   const yAxis = sfenPointSelector.slice(1, 2) as keyof typeof Y_AXIS;
   return { x: xAxis, y: Y_AXIS[yAxis] };
+}
+export function getPointFromIndex(index: number): Point {
+  const x = 9 - (index % 9);
+  const y = (index - (index % 9)) / 9 + 1;
+  return { x, y };
 }
 
 export function initHands(handsStr: string): Hands {
@@ -112,11 +125,15 @@ export function initHands(handsStr: string): Hands {
       if (index === 0) {
         return { ...acc, [value]: 1 };
       }
-      const num = Number(handsStr[index - 1]);
-      if (isNaN(num)) {
-        return { ...acc, [value]: 1 };
+      const doubleDigitNum = Number(handsStr.substring(index - 2, index));
+      if (!isNaN(doubleDigitNum)) {
+        return { ...acc, [value]: doubleDigitNum };
+      }
+      const singleDigitNum = Number(handsStr[index - 1]);
+      if (!isNaN(singleDigitNum)) {
+        return { ...acc, [value]: singleDigitNum };
       } else {
-        return { ...acc, [value]: num };
+        return { ...acc, [value]: 1 };
       }
     },
     {} as Hands,
@@ -133,20 +150,22 @@ export function initBoard(
     squareStr: string;
     handsStr: string;
     turn: string;
-  } = {
-    squareStr: 'lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL',
-    handsStr: '',
-    turn: 'w',
-  },
+  } = INITIAL_BOARD.HIRATE,
 ): Board {
   const squareList = initSquare(squareStr);
   const hands = initHands(handsStr);
   const isSenteTurn = turn === 'w';
   return { squareList, hands, isSenteTurn };
 }
-export function moveBoard(board: Board, move: Move): Board {
+export function moveBoard(
+  board: Board,
+  move: Move,
+  boardEditing = false,
+): Board {
   return produce(board, (draftBoard) => {
-    draftBoard.isSenteTurn = !board.isSenteTurn;
+    if (!boardEditing) {
+      draftBoard.isSenteTurn = !board.isSenteTurn;
+    }
     if (move.slice(1, 2) === '*') {
       // always uppercase
       const piece = move.slice(0, 1);
@@ -154,31 +173,32 @@ export function moveBoard(board: Board, move: Move): Board {
         throw Error(`${piece} is incollect sfen`);
       } else {
         const to = move.slice(2, 4) as SfenPointSelector;
-        const toIndex = getIndex(getPoint(to));
+        const toIndex = getIndex(getPointFromSfen(to));
         if (board.isSenteTurn) {
           draftBoard.squareList[toIndex] = piece;
           draftBoard.hands[piece] -= 1;
         } else {
-          draftBoard.squareList[toIndex] = flip(piece);
-          draftBoard.hands[flip(piece)] -= 1;
+          const turnOveredPiece = turnOver(piece) as KIND_VALUE;
+          draftBoard.squareList[toIndex] = turnOveredPiece;
+          draftBoard.hands[turnOveredPiece] -= 1;
         }
       }
       return draftBoard;
     }
     const from = move.slice(0, 2) as SfenPointSelector;
-    const fromIndex = getIndex(getPoint(from));
+    const fromIndex = getIndex(getPointFromSfen(from));
     const piece = selectPiece(board.squareList, fromIndex);
     draftBoard.squareList[fromIndex] = '';
 
     const to = move.slice(2, 4) as SfenPointSelector;
-    const toIndex = getIndex(getPoint(to));
+    const toIndex = getIndex(getPointFromSfen(to));
     const toPiece = selectPiece(board.squareList, toIndex);
     if (toPiece !== '') {
       const pieceForHands = !isKindValue(toPiece)
         ? (toPiece.slice(1.2) as KIND_VALUE)
         : toPiece;
       // not check for piece is opposite
-      draftBoard.hands[flip(pieceForHands)] += 1;
+      draftBoard.hands[turnOver(pieceForHands) as KIND_VALUE] += 1;
     }
     const showPromote = move.slice(4, 5);
     if (showPromote === '+') {
@@ -195,22 +215,38 @@ export function moveBoard(board: Board, move: Move): Board {
 }
 
 export function createHorizontalMove({
-  fromX,
-  fromY,
-  toX,
-  toY,
+  from,
+  to,
   promote = false,
 }: {
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
+  from: number | Point;
+  to: number | Point;
   promote?: boolean;
 }): HorizontalMove {
-  const from = `${fromX}${convertNumToAlphabet(fromY)}`;
-  const to = `${toX}${convertNumToAlphabet(toY)}`;
+  let [fromX, fromY, toX, toY] = [0, 0, 0, 0];
+  if (isPoint(from)) {
+    if (!isPoint(to)) {
+      throw Error('when "from" is Point, "to" must be Point');
+    }
+    fromX = from.x;
+    fromY = from.y;
+    toX = to.x;
+    toY = to.y;
+  } else {
+    if (isPoint(to)) {
+      throw Error('when "from" is Point, "to" must be Point');
+    }
+    const fromPoint = getPointFromIndex(from);
+    fromX = fromPoint.x;
+    fromY = fromPoint.y;
+    const toPoint = getPointFromIndex(to);
+    toX = toPoint.x;
+    toY = toPoint.y;
+  }
+  const fromSfen = `${fromX}${convertNumToAlphabet(fromY)}`;
+  const toSfen = `${toX}${convertNumToAlphabet(toY)}`;
   const suffix: SHOW_PROMOTE = promote ? '+' : '';
-  const move = `${from}${to}${suffix}`;
+  const move = `${fromSfen}${toSfen}${suffix}`;
   if (!isHorizontalMove(move)) {
     throw Error(`${move} is not horizontalmove`);
   } else {
@@ -223,18 +259,148 @@ export function convertNumToAlphabet(num: number): string | undefined {
 
 export function createVerticalMove({
   piece,
-  toX,
-  toY,
+  to,
 }: {
   piece: UPPERCASE_KIND_VALUE;
-  toX: number;
-  toY: number;
+  to: number | Point;
 }): VerticalMove {
-  const to = `${toX}${convertNumToAlphabet(toY)}`;
-  const move = `${piece}*${to}`;
+  let [toX, toY] = [0, 0];
+  if (isPoint(to)) {
+    toX = to.x;
+    toY = to.y;
+  } else {
+    const toPoint = getPointFromIndex(to);
+    toX = toPoint.x;
+    toY = toPoint.y;
+  }
+  const toSfen = `${toX}${convertNumToAlphabet(toY)}`;
+  const move = `${piece}*${toSfen}`;
   if (!isVerticalMove(move)) {
     throw Error(`${move} is not vertical move`);
   } else {
     return move;
+  }
+}
+
+export function promoteOrFlipPieceOnSquareList(
+  board: Board,
+  newState: Piece,
+  position: number,
+): Board {
+  return produce(board, (draftBoard) => {
+    draftBoard.squareList[position] = newState;
+  });
+}
+
+export function getExistPieceFromHands(
+  hands: Hands,
+): { senteExistHands: Partial<Hands>; goteExistHands: Partial<Hands> } {
+  const senteExistHands = Object.values(UPPERCASE_KIND)
+    .filter((kind) => hands[kind])
+    .reduce(
+      (acc, kind) => ({ ...acc, [kind]: hands[kind] }),
+      {} as Partial<Hands>,
+    );
+  const goteExistHands = Object.values(LOWERCASE_KIND)
+    .filter((kind) => hands[kind])
+    .reduce(
+      (acc, kind) => ({ ...acc, [kind]: hands[kind] }),
+      {} as Partial<Hands>,
+    );
+  return { senteExistHands, goteExistHands };
+}
+
+export function getMovablePoints(board: Board, point: Point): Array<Point> {
+  const piece = selectPiece(board.squareList, point);
+  if (piece === '') {
+    return [];
+  }
+  const isUpper = isUpperPiece(piece);
+  const isOppositePiece = (p: Piece) =>
+    isUpper ? !isUpperPiece(p) : isUpperPiece(p);
+  const key = isUpper
+    ? (piece as UPPERCASE_PIECE)
+    : (turnOver(piece) as UPPERCASE_PIECE);
+  const movableRelativePositions = MOVABLE_RELATIVE_POSITIONS[key];
+  return movableRelativePositions.reduce((acc, positionCandidates) => {
+    const results = [] as Array<Point>;
+    for (const relativePoints of positionCandidates) {
+      // shogi board is (x,y) starts upper right
+      const x = isUpper
+        ? point.x - relativePoints[0]
+        : point.x + relativePoints[0];
+      const y = isUpper
+        ? point.y - relativePoints[1]
+        : point.y + relativePoints[1];
+      if (x > 9 || x < 1 || y > 9 || y < 1) {
+        continue;
+      }
+      const piece = selectPiece(board.squareList, { x, y });
+      if (piece === '') {
+        results.push({ x, y });
+      } else if (isOppositePiece(piece)) {
+        results.push({ x, y });
+        break;
+      } else {
+        break;
+      }
+    }
+    return [...acc, ...results];
+  }, [] as Array<Point>);
+}
+
+export function getDropablePoints(board: Board, piece: Piece): Array<Point> {
+  return board.squareList.reduce((acc, square, index) => {
+    const point = getPointFromIndex(index);
+    if (
+      square ||
+      isNifu(board.squareList, point, piece) ||
+      cannotMoreMove(point, piece)
+    ) {
+      return acc;
+    } else {
+      return [...acc, point];
+    }
+  }, [] as Array<Point>);
+}
+
+function isNifu(squareList: SquareList, point: Point, piece: Piece): boolean {
+  if (piece !== LOWERCASE_KIND.FU && piece !== UPPERCASE_KIND.FU) {
+    return false;
+  }
+  return squareList
+    .filter((_, index) => getPointFromIndex(index).x === point.x)
+    .some((square) => square === piece);
+}
+
+function cannotMoreMove(point: Point, piece: Piece): boolean {
+  switch (piece) {
+    case UPPERCASE_KIND.FU:
+    case UPPERCASE_KIND.KYOSHA:
+      return point.y === 1;
+    case UPPERCASE_KIND.KEIMA:
+      return point.y <= 2;
+    case LOWERCASE_KIND.FU:
+    case LOWERCASE_KIND.KYOSHA:
+      return point.y === 9;
+    case LOWERCASE_KIND.KEIMA:
+      return point.y >= 8;
+    default:
+      return false;
+  }
+}
+
+export function canPromote(piece: Piece, index: number): boolean {
+  if (piece.includes('+')) {
+    return false;
+  }
+  if (!isPromotableKindValue(piece as KIND_VALUE)) {
+    return false;
+  }
+  const point: Point = getPointFromIndex(index);
+  if (isLowerCaseKindValue(piece)) {
+    return point.y >= 7;
+  } else {
+    return point.y <= 3;
   }
 }

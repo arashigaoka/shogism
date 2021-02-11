@@ -20,6 +20,13 @@ export const Y_AXIS = {
   h: 8,
   i: 9,
 };
+export type Point = {
+  x: number;
+  y: number;
+};
+export function isPoint(target: any): target is Point {
+  return !!target.x;
+}
 export type SfenPointSelector = `${X_AXIS}${keyof typeof Y_AXIS}`;
 export function isSfenPointSelector(str: string): str is SfenPointSelector {
   return (
@@ -58,7 +65,9 @@ export function isVerticalMove(str: string): str is VerticalMove {
   }
   return false;
 }
-export type Move = HorizontalMove | VerticalMove;
+// export type Move = HorizontalMove | VerticalMove;
+// avoid warning 'Expression produces a union type that is too complex to represent'
+export type Move = string;
 export function isMove(str: string): str is Move {
   return isVerticalMove(str) || isHorizontalMove(str);
 }
@@ -72,4 +81,16 @@ export type Board = {
   readonly hands: Hands;
   readonly isSenteTurn: boolean;
   comment?: string;
+};
+export const INITIAL_BOARD = {
+  HIRATE: {
+    squareStr: 'lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL',
+    handsStr: '',
+    turn: 'w',
+  },
+  NOPIECE: {
+    squareStr: '9/9/9/9/9/9/9/9/9',
+    handsStr: 'K2R2B4G4S4N4L18P',
+    turn: 'w',
+  },
 };

@@ -1,26 +1,31 @@
-import { toPrettierString } from '../board';
-import { initKifuFromSfen } from '../kifu';
+import { initBoard, initSquare, toPrettierString } from '../board';
+import { INITIAL_BOARD } from '../board/types';
+import {
+  getFirstIndexOfMatchedBoard,
+  getReadableMove,
+  initKifuFromSfen,
+  produceKifu,
+} from '../kifu';
 
 describe('initKifu', () => {
   test('init by startpos', () => {
     const kifu = initKifuFromSfen();
     expect(kifu.boardList.length).toBe(1);
-    expect(kifu.moves.length).toBe(0);
+    expect(kifu.kifuMoves.length).toBe(0);
   });
   test('init by whiteboard', () => {
-    const squareStr = '9/9/9/9/9/9/9/9/9';
-    const turn = 'w';
-    const handsStr = 'KRB2G2S2N2L9Pkrb2g2s2n2l9p';
-    const kifu = initKifuFromSfen({ squareStr, turn, handsStr });
+    const kifu = initKifuFromSfen(INITIAL_BOARD.NOPIECE);
     const board = kifu.boardList[0];
-    expect(board.hands['P']).toBe(9);
+    expect(board.hands['P']).toBe(18);
     expect(board.squareList.join('').length).toBe(0);
     expect(board.isSenteTurn).toBeTruthy();
   });
   test('init by startops and moves', () => {
     const moveStr = '7g7f 3c3d 8h2b+';
     const kifu = initKifuFromSfen(undefined, moveStr);
-    expect(kifu.moves.length).toBe(3);
+    expect(kifu.kifuMoves.length).toBe(3);
+    expect(kifu.kifuMoves[2].sfen).toBe('8h2b+');
+    expect(kifu.kifuMoves[2].kif).toBe('２二角成(88)');
     const lastBoard = kifu.boardList[3];
     expect(lastBoard.hands['B']).toBe(1);
 
@@ -45,5 +50,118 @@ LNSGKGSNL
     const kifu = initKifuFromSfen(undefined, moveStr);
     const lastBoard = kifu.boardList[kifu.boardList.length - 1];
     expect(lastBoard.hands['p']).toBe(4);
+  });
+});
+describe('get Readable Move', () => {
+  const moveStr = '7g7f 3c3d 8h2b+ B*3c 2b3a 4a3a B*5e 3c2b 5e2b+';
+  const kifu = initKifuFromSfen(undefined, moveStr);
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[0].squareList,
+      currentMove: '7g7f',
+    }),
+  ).toBe('７六歩(77)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[1].squareList,
+      currentMove: '3c3d',
+      prevMove: '7g7f',
+    }),
+  ).toBe('３四歩(33)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[2].squareList,
+      currentMove: '8h2b+',
+      prevMove: '3c3d',
+    }),
+  ).toBe('２二角成(88)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[3].squareList,
+      currentMove: 'B*3c',
+      prevMove: '8h2b+',
+    }),
+  ).toBe('３三角打');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[4].squareList,
+      currentMove: '2b3a',
+      prevMove: 'B*3c',
+    }),
+  ).toBe('３一馬(22)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[5].squareList,
+      currentMove: '4a3a',
+      prevMove: '2b3a',
+    }),
+  ).toBe('同　金(41)');
+  expect(
+    getReadableMove({
+      squareList: kifu.boardList[8].squareList,
+      currentMove: '5e2b+',
+      prevMove: '3c2b',
+    }),
+  ).toBe('同　角成(55)');
+});
+describe('search kifu', () => {
+  test('success', () => {
+    const kifu = initKifuFromSfen();
+    const board = initBoard();
+    const squareList = board.squareList;
+    const index = getFirstIndexOfMatchedBoard(kifu, squareList);
+    expect(index).toBe(0);
+  });
+});
+
+describe('produceKifu', () => {
+  test('success', () => {
+    const kifu = initKifuFromSfen();
+    const newKifu = produceKifu(kifu, '7g7f');
+    expect(newKifu.kifuMoves[0]?.sfen).toBe('7g7f');
+    expect(newKifu.kifuMoves[0]?.kif).toBe('７六歩(77)');
+    const newKifu2 = produceKifu(newKifu, '2g2f', 0);
+    expect(newKifu2.boardList[0].squareList).toStrictEqual(
+      initSquare(INITIAL_BOARD.HIRATE.squareStr),
+    );
+    expect(newKifu2.kifuMoves[0]?.sfen).toBe('2g2f');
+    expect(newKifu2.kifuMoves[0]?.kif).toBe('２六歩(27)');
+    const prettierString = `lnsgkgsnl
+.r.....b.
+ppppppppp
+.........
+.........
+.......P.
+PPPPPPP.P
+.B.....R.
+LNSGKGSNL
+`;
+    expect(toPrettierString(newKifu2.boardList[1].squareList)).toBe(
+      prettierString,
+    );
+  });
+  test('update', () => {
+    const moveStr = '7g7f 3c3d 8h2b+ B*3c 2b3a 4a3a B*5e 3c2b 5e2b+';
+    const kifu = initKifuFromSfen(undefined, moveStr);
+    const newKifu = produceKifu(kifu, '3a2b', 3);
+    expect(newKifu.kifuMoves[3]?.sfen).toBe('3a2b');
+  });
+  test('boardEditing', () => {
+    const kifu = initKifuFromSfen(INITIAL_BOARD.NOPIECE, undefined, true);
+    const newKifu = produceKifu(kifu, 'P*5e');
+    const newKifu2 = produceKifu(newKifu, 'P*5a');
+    const prettierString = `....P....
+.........
+.........
+.........
+....P....
+.........
+.........
+.........
+.........
+`;
+    expect(toPrettierString(newKifu2.boardList[2].squareList)).toBe(
+      prettierString,
+    );
   });
 });
