@@ -90,7 +90,7 @@ export const INITIAL_BOARD = {
   },
   NOPIECE: {
     squareStr: '9/9/9/9/9/9/9/9/9',
-    handsStr: 'K2R2B4G4S4N4L18P',
+    handsStr: '2K2R2B4G4S4N4L18P',
     turn: 'w',
   },
 };
