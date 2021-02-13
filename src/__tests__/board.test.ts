@@ -276,6 +276,11 @@ describe('overwritePieceOnSquareList', () => {
     const newBoard = overwritePieceOnSquareList(board, '+L', 0);
     expect(newBoard.squareList[0]).toBe('+L');
   });
+  test('can overwrite empty', () => {
+    const board = initBoard(INITIAL_BOARD.HIRATE);
+    const newBoard = overwritePieceOnSquareList(board, '', 0);
+    expect(newBoard.squareList[0]).toBe('');
+  });
 });
 
 describe('getHands', () => {

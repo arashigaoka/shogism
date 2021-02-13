@@ -284,7 +284,7 @@ export function createVerticalMove({
 
 export function overwritePieceOnSquareList(
   board: Board,
-  newState: Piece,
+  newState: Piece | '',
   position: number,
 ): Board {
   return produce(board, (draftBoard) => {
