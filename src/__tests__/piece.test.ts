@@ -17,7 +17,7 @@ describe('turnOver', () => {
 describe('getChangeablePiece', () => {
   test('success', () => {
     const changeablePiece = getChangeablePiece('p');
-    expect(changeablePiece).toStrictEqual(['p', 'P', '+p', '+P']);
+    expect(changeablePiece).toStrictEqual(['P', '+P', 'p', '+p']);
   });
   test('only one result when argument is Gold', () => {
     const changeablePiece = getChangeablePiece('k');
@@ -25,10 +25,10 @@ describe('getChangeablePiece', () => {
   });
   test('argument is upperCase', () => {
     const changeablePiece = getChangeablePiece('P');
-    expect(changeablePiece).toStrictEqual(['p', 'P', '+p', '+P']);
+    expect(changeablePiece).toStrictEqual(['P', '+P', 'p', '+p']);
   });
   test('argument is promoted piece', () => {
     const changeablePiece = getChangeablePiece('+P');
-    expect(changeablePiece).toStrictEqual(['p', 'P', '+p', '+P']);
+    expect(changeablePiece).toStrictEqual(['P', '+P', 'p', '+p']);
   });
 });
