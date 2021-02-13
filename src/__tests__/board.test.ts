@@ -6,7 +6,7 @@ import {
 } from '../board/types';
 import {
   createVerticalMove,
-  promoteOrFlipPieceOnSquareList,
+  overwritePieceOnSquareList,
   initSquare,
   toPrettierString,
   selectPiece,
@@ -270,10 +270,10 @@ describe('isMove', () => {
     expect(isVerticalMove(str)).toBeFalsy();
   });
 });
-describe('promoteOrFlipPieceOnSquareList', () => {
+describe('overwritePieceOnSquareList', () => {
   test('success', () => {
     const board = initBoard(INITIAL_BOARD.HIRATE);
-    const newBoard = promoteOrFlipPieceOnSquareList(board, '+L', 0);
+    const newBoard = overwritePieceOnSquareList(board, '+L', 0);
     expect(newBoard.squareList[0]).toBe('+L');
   });
 });

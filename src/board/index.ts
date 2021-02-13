@@ -282,7 +282,7 @@ export function createVerticalMove({
   }
 }
 
-export function promoteOrFlipPieceOnSquareList(
+export function overwritePieceOnSquareList(
   board: Board,
   newState: Piece,
   position: number,
