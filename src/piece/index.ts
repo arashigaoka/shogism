@@ -117,6 +117,6 @@ export function getChangeablePiece(piece: Piece): Array<Piece> {
       promote(lowerKindValue),
     ];
   } else {
-    return [lowerKindValue, turnOver(lowerKindValue)];
+    return [turnOver(lowerKindValue), lowerKindValue];
   }
 }

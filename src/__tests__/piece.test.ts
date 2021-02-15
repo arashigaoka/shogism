@@ -21,7 +21,7 @@ describe('getChangeablePiece', () => {
   });
   test('only one result when argument is Gold', () => {
     const changeablePiece = getChangeablePiece('k');
-    expect(changeablePiece).toStrictEqual(['k', 'K']);
+    expect(changeablePiece).toStrictEqual(['K', 'k']);
   });
   test('argument is upperCase', () => {
     const changeablePiece = getChangeablePiece('P');
