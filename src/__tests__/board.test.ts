@@ -174,6 +174,11 @@ LNSGKGSNL
     const newBoard = moveBoard(board, 'B*1a', true);
     expect(newBoard.isSenteTurn).toBeTruthy();
   });
+  test('should not copy comment', () => {
+    const board = { ...initBoard(INITIAL_BOARD.HIRATE), comment: 'test' };
+    const newBoard = moveBoard(board, '7g7f');
+    expect(newBoard.comment).toBe(undefined);
+  });
 });
 
 describe('toSquareStr', () => {

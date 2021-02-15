@@ -163,6 +163,7 @@ export function moveBoard(
   boardEditing = false,
 ): Board {
   return produce(board, (draftBoard) => {
+    draftBoard.comment = undefined;
     if (!boardEditing) {
       draftBoard.isSenteTurn = !board.isSenteTurn;
     }
