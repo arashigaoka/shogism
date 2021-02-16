@@ -94,3 +94,10 @@ export const INITIAL_BOARD = {
     turn: 'w',
   },
 };
+
+export const PROMOTION_POSSIBLITY = {
+  IMPOSSIBLE: 'IMPOSSIBLE',
+  POSSIBLE: 'POSSIBLE',
+  MUST: 'MUST',
+} as const;
+export type PROMOTION_POSSIBLITY = typeof PROMOTION_POSSIBLITY[keyof typeof PROMOTION_POSSIBLITY];

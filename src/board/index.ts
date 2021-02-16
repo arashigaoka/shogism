@@ -26,6 +26,7 @@ import {
   isVerticalMove,
   Move,
   Point,
+  PROMOTION_POSSIBLITY,
   SfenPointSelector,
   SquareList,
   VerticalMove,
@@ -403,5 +404,43 @@ export function canPromote(piece: Piece, index: number): boolean {
     return point.y >= 7;
   } else {
     return point.y <= 3;
+  }
+}
+
+const relyCanPromote = (piece: Piece, index: number) => {
+  return canPromote(piece, index)
+    ? PROMOTION_POSSIBLITY.POSSIBLE
+    : PROMOTION_POSSIBLITY.IMPOSSIBLE;
+};
+export function getPromotionPossibility(
+  piece: Piece,
+  index: number,
+): PROMOTION_POSSIBLITY {
+  const mustPromotePiecesOnFirstRow = ['p', 'l', 'n', 'P', 'L', 'N'];
+  const mustPromotePiecesOnSecondRow = ['n', 'N'];
+  if (!mustPromotePiecesOnFirstRow.includes(piece)) {
+    return relyCanPromote(piece, index);
+  }
+  const point: Point = getPointFromIndex(index);
+  if (mustPromotePiecesOnSecondRow.includes(piece)) {
+    if (piece === 'n') {
+      return point.y >= 8
+        ? PROMOTION_POSSIBLITY.MUST
+        : relyCanPromote(piece, index);
+    } else {
+      return point.y <= 2
+        ? PROMOTION_POSSIBLITY.MUST
+        : relyCanPromote(piece, index);
+    }
+  }
+  // mustPromotePiecesOnFirstRow
+  if (isLowerCaseKindValue(piece)) {
+    return point.y === 9
+      ? PROMOTION_POSSIBLITY.MUST
+      : relyCanPromote(piece, index);
+  } else {
+    return point.y === 1
+      ? PROMOTION_POSSIBLITY.MUST
+      : relyCanPromote(piece, index);
   }
 }

@@ -3,6 +3,7 @@ import {
   isHorizontalMove,
   isSfenPointSelector,
   isVerticalMove,
+  PROMOTION_POSSIBLITY,
 } from '../board/types';
 import {
   createVerticalMove,
@@ -19,6 +20,7 @@ import {
   getMovablePoints,
   getDropablePoints,
   canPromote,
+  getPromotionPossibility,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {
@@ -450,5 +452,39 @@ describe('can promote', () => {
     expect(canPromote('B', 28)).toBeFalsy();
     expect(canPromote('+L', 12)).toBeFalsy();
     expect(canPromote('K', 12)).toBeFalsy();
+  });
+});
+
+describe('get promotion possibility', () => {
+  test('possible', () => {
+    expect(getPromotionPossibility('B', 12)).toBe(
+      PROMOTION_POSSIBLITY.POSSIBLE,
+    );
+    expect(getPromotionPossibility('P', 9)).toBe(PROMOTION_POSSIBLITY.POSSIBLE);
+    expect(getPromotionPossibility('N', 18)).toBe(
+      PROMOTION_POSSIBLITY.POSSIBLE,
+    );
+  });
+  test('must', () => {
+    expect(getPromotionPossibility('P', 1)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('p', 80)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('L', 1)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('l', 80)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('N', 9)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('n', 71)).toBe(PROMOTION_POSSIBLITY.MUST);
+  });
+  test('impossible', () => {
+    expect(getPromotionPossibility('P', 80)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
+    expect(getPromotionPossibility('L', 40)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
+    expect(getPromotionPossibility('l', 40)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
+    expect(getPromotionPossibility('N', 27)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
   });
 });
