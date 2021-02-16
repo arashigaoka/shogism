@@ -107,10 +107,14 @@ describe('export kif', () => {
     INITIAL_BOARD.HIRATE,
     '7g7f 3c3d 8h2b+ 3a2b B*4e',
   );
-  const kif = exportKIF({ ...kifu, finishTrigger: FinishTrigger['投了'] });
+  const kif = exportKIF({
+    ...kifu,
+    header: { sente: 'sente', gote: 'gote' },
+    finishTrigger: FinishTrigger['投了'],
+  });
   expect(kif).toBe(`手合割：平手
-先手:先手
-後手:後手
+先手：sente
+後手：gote
 手数----指手---------消費時間--
 1 ７六歩(77) (0:00/00:00:00)
 2 ３四歩(33) (0:00/00:00:00)

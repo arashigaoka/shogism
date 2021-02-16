@@ -227,8 +227,8 @@ export function exportKIF(kifu: Kifu): string {
 
 function exportHeader(header?: Header) {
   const teai = '手合割：平手';
-  const sente = `先手:${header?.sente || '先手'}`;
-  const gote = `後手:${header?.sente || '後手'}`;
+  const sente = `先手：${header?.sente || '先手'}`;
+  const gote = `後手：${header?.gote || '後手'}`;
   return [teai, sente, gote].join('\n');
 }
 
