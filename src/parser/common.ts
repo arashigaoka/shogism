@@ -5,6 +5,8 @@ import {
   UPPERCASE_KIND_VALUE,
 } from '..';
 import { Kifu } from '../kifu/types';
+import { parseKi2 } from './ki2Parser';
+import { parseKIF } from './kifParser';
 
 export const KifToSfen = {
   歩: UPPERCASE_KIND.FU,
@@ -79,3 +81,19 @@ export type ProcessingState = {
 };
 export const isKifu = (partialKifu: Partial<Kifu>): partialKifu is Kifu =>
   !!partialKifu.boardList && !!partialKifu.kifuMoves;
+
+export function parseAuto(str: string): Kifu {
+  const msg = [];
+  try {
+    return parseKIF(str);
+  } catch (e) {
+    msg.push(e);
+  }
+  try {
+    return parseKi2(str);
+  } catch (e) {
+    msg.push(e);
+  }
+  throw Error(`parse failed error is below
+  ${msg.join('\n')}`);
+}
