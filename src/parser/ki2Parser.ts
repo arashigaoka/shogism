@@ -16,13 +16,14 @@ import {
   UPPERCASE_KIND_VALUE,
 } from '../piece';
 import { pipe } from '../util';
-import { isKifu, ProcessingState } from './common';
 import {
+  isKifu,
+  ProcessingState,
   ChineseNumber,
   convertZenToHan,
   KifToSfen,
   SfenToKif,
-} from './kifParser';
+} from './common';
 
 const X_SPECIFIER = ['右', '左', '直'] as const;
 type X_SPECIFIER = typeof X_SPECIFIER[number];

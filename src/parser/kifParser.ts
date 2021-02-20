@@ -8,75 +8,15 @@ import {
 import { Board, Move, Y_AXIS } from '../board/types';
 import { getReadableMove } from '../kifu';
 import { FinishTrigger, Header, Kifu, KifuMove } from '../kifu/types';
-import {
-  UPPERCASE_KIND,
-  PROMOTED_UPPER_KIND,
-  UPPERCASE_KIND_VALUE,
-  PROMOTED_UPPER_KIND_VALUE,
-} from '../piece';
+import { UPPERCASE_KIND_VALUE } from '../piece';
 import { pipe } from '../util';
-import { isKifu, ProcessingState } from './common';
-export const KifToSfen = {
-  歩: UPPERCASE_KIND.FU,
-  香: UPPERCASE_KIND.KYOSHA,
-  桂: UPPERCASE_KIND.KEIMA,
-  銀: UPPERCASE_KIND.GIN,
-  金: UPPERCASE_KIND.KIN,
-  角: UPPERCASE_KIND.KAKU,
-  飛: UPPERCASE_KIND.FI,
-  玉: UPPERCASE_KIND.OU,
-  王: UPPERCASE_KIND.OU,
-  と: PROMOTED_UPPER_KIND.TO,
-  杏: PROMOTED_UPPER_KIND.NARIKYO,
-  成香: PROMOTED_UPPER_KIND.NARIKYO,
-  圭: PROMOTED_UPPER_KIND.NARIKEI,
-  成桂: PROMOTED_UPPER_KIND.NARIKEI,
-  全: PROMOTED_UPPER_KIND.NARIGIN,
-  成銀: PROMOTED_UPPER_KIND.NARIGIN,
-  馬: PROMOTED_UPPER_KIND.UMA,
-  龍: PROMOTED_UPPER_KIND.RYU,
-  竜: PROMOTED_UPPER_KIND.RYU,
-} as const;
-export type KifToSfen = {
-  [key: string]: UPPERCASE_KIND_VALUE | PROMOTED_UPPER_KIND_VALUE;
-};
-export const SfenToKif = {
-  [UPPERCASE_KIND.FU]: '歩',
-  [UPPERCASE_KIND.KYOSHA]: '香',
-  [UPPERCASE_KIND.KEIMA]: '桂',
-  [UPPERCASE_KIND.GIN]: '銀',
-  [UPPERCASE_KIND.KIN]: '金',
-  [UPPERCASE_KIND.KAKU]: '角',
-  [UPPERCASE_KIND.FI]: '飛',
-  [UPPERCASE_KIND.OU]: '玉',
-  [PROMOTED_UPPER_KIND.TO]: 'と',
-  [PROMOTED_UPPER_KIND.NARIKYO]: '成香',
-  [PROMOTED_UPPER_KIND.NARIKEI]: '成桂',
-  [PROMOTED_UPPER_KIND.NARIGIN]: '成銀',
-  [PROMOTED_UPPER_KIND.UMA]: '馬',
-  [PROMOTED_UPPER_KIND.RYU]: '龍',
-} as const;
-export const ChineseNumber = {
-  一: 1,
-  二: 2,
-  三: 3,
-  四: 4,
-  五: 5,
-  六: 6,
-  七: 7,
-  八: 8,
-  九: 9,
-};
-export function getChineseNumber(num: number): string | undefined {
-  return Object.entries(ChineseNumber).find(([, value]) => value === num)?.[0];
-}
-
-type Comment = {
-  comment: string;
-};
-function isComment(str: any): str is Comment {
-  return !!str.comment;
-}
+import {
+  ChineseNumber,
+  convertZenToHan,
+  isKifu,
+  KifToSfen,
+  ProcessingState,
+} from './common';
 
 export function parseKIF(kifStr: string): Kifu {
   const lines = kifStr
@@ -209,18 +149,6 @@ export function parseKifMoves(
       }),
     { boardList: [board], kifuMoves: [] as Array<KifuMove> },
   );
-}
-
-export function convertZenToHan(str: string): string {
-  return str.replace(/[０-９]/g, (s) =>
-    String.fromCharCode(s.charCodeAt(0) - 0xfee0),
-  );
-}
-
-export function convertHanToZen(str: string): string {
-  return str.replace(/[0-9]/g, function (s) {
-    return String.fromCharCode(s.charCodeAt(0) + 0xfee0);
-  });
 }
 
 function parseFinishTrigger({

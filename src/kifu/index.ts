@@ -19,11 +19,7 @@ import {
   SquareList,
 } from '../board/types';
 import { Kifu, KifuMove } from './types';
-import {
-  convertHanToZen,
-  getChineseNumber,
-  SfenToKif,
-} from '../parser/kifParser';
+import { convertHanToZen, getChineseNumber, SfenToKif } from '../parser/common';
 import produce from 'immer';
 
 export function initKifuFromSfen(
