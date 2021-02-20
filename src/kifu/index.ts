@@ -17,7 +17,7 @@ import {
   convertHanToZen,
   getChineseNumber,
   SfenToKif,
-} from '../parser/kifuParser';
+} from '../parser/kifParser';
 import produce from 'immer';
 
 export function initKifuFromSfen(

@@ -4,11 +4,17 @@ import {
   initBoard,
   moveBoard,
 } from '../board';
-import { Board, Move, Y_AXIS } from '../board/types';
+import { Move, Y_AXIS } from '../board/types';
 import { getReadableMove } from '../kifu';
 import { FinishTrigger, Header, Kifu, KifuMove } from '../kifu/types';
-import { Piece, UPPERCASE_KIND, PROMOTED_UPPER_KIND } from '../piece';
-const KifToSfen = {
+import {
+  UPPERCASE_KIND,
+  PROMOTED_UPPER_KIND,
+  UPPERCASE_KIND_VALUE,
+  PROMOTED_KIND_VALUE,
+  PROMOTED_UPPER_KIND_VALUE,
+} from '../piece';
+export const KifToSfen = {
   歩: UPPERCASE_KIND.FU,
   香: UPPERCASE_KIND.KYOSHA,
   桂: UPPERCASE_KIND.KEIMA,
@@ -16,8 +22,22 @@ const KifToSfen = {
   金: UPPERCASE_KIND.KIN,
   角: UPPERCASE_KIND.KAKU,
   飛: UPPERCASE_KIND.FI,
+  玉: UPPERCASE_KIND.OU,
+  王: UPPERCASE_KIND.OU,
+  と: PROMOTED_UPPER_KIND.TO,
+  杏: PROMOTED_UPPER_KIND.NARIKYO,
+  成香: PROMOTED_UPPER_KIND.NARIKYO,
+  圭: PROMOTED_UPPER_KIND.NARIKEI,
+  成桂: PROMOTED_UPPER_KIND.NARIKEI,
+  全: PROMOTED_UPPER_KIND.NARIGIN,
+  成銀: PROMOTED_UPPER_KIND.NARIGIN,
+  馬: PROMOTED_UPPER_KIND.UMA,
+  龍: PROMOTED_UPPER_KIND.RYU,
+  竜: PROMOTED_UPPER_KIND.RYU,
+} as const;
+export type KifToSfen = {
+  [key: string]: UPPERCASE_KIND_VALUE | PROMOTED_UPPER_KIND_VALUE;
 };
-type KifToSfen = { [key: string]: Piece };
 export const SfenToKif = {
   [UPPERCASE_KIND.FU]: '歩',
   [UPPERCASE_KIND.KYOSHA]: '香',
@@ -33,8 +53,8 @@ export const SfenToKif = {
   [PROMOTED_UPPER_KIND.NARIGIN]: '成銀',
   [PROMOTED_UPPER_KIND.UMA]: '馬',
   [PROMOTED_UPPER_KIND.RYU]: '龍',
-};
-const ChineseNumber = {
+} as const;
+export const ChineseNumber = {
   一: 1,
   二: 2,
   三: 3,
@@ -109,14 +129,14 @@ export function parseKifMove(
       y: ChineseNumber[secondChar],
     };
     const thirdChar = target.slice(2, 3) as keyof typeof KifToSfen;
-    const piece = KifToSfen[thirdChar];
+    const piece = KifToSfen[thirdChar] as UPPERCASE_KIND_VALUE;
     const move = createVerticalMove({ to, piece });
     return move;
   }
   return null;
 }
 
-function convertZenToHan(str: string): string {
+export function convertZenToHan(str: string): string {
   return str.replace(/[０-９]/g, (s) =>
     String.fromCharCode(s.charCodeAt(0) - 0xfee0),
   );

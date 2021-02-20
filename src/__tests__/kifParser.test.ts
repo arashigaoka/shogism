@@ -1,6 +1,6 @@
 import { toPrettierString } from '../board';
 import { FinishTrigger } from '../kifu/types';
-import { exportKIF, parseKIF, parseKifMove } from '../parser/kifuParser';
+import { exportKIF, parseKIF, parseKifMove } from '../parser/kifParser';
 import fs from 'fs';
 import { initKifuFromSfen } from '../kifu';
 import { INITIAL_BOARD } from '../board/types';
