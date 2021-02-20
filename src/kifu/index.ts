@@ -4,7 +4,13 @@ import {
   isUpperPiece,
   turnOver,
 } from '../piece';
-import { initBoard, moveBoard, getPointFromSfen, selectPiece } from '../board';
+import {
+  initBoard,
+  moveBoard,
+  getPointFromSfen,
+  selectPiece,
+  toPrettierString,
+} from '../board';
 import {
   isMove,
   isVerticalMove,
@@ -83,7 +89,10 @@ export function getReadableMove({
     const toPoint = getPointFromSfen(toSfen);
     const piece = selectPiece(squareList, fromPoint);
     if (!piece) {
-      throw Error('invalid Kifu');
+      throw Error(`from_point is 'x: ${fromPoint.x} y: ${
+        fromPoint.y
+      } ', but there is  no piece
+${toPrettierString(squareList)}`);
     }
     const UpperPiece = isUpperPiece(piece)
       ? piece

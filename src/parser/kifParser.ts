@@ -1,19 +1,21 @@
+import produce from 'immer';
 import {
   createHorizontalMove,
   createVerticalMove,
   initBoard,
   moveBoard,
 } from '../board';
-import { Move, Y_AXIS } from '../board/types';
+import { Board, Move, Y_AXIS } from '../board/types';
 import { getReadableMove } from '../kifu';
 import { FinishTrigger, Header, Kifu, KifuMove } from '../kifu/types';
 import {
   UPPERCASE_KIND,
   PROMOTED_UPPER_KIND,
   UPPERCASE_KIND_VALUE,
-  PROMOTED_KIND_VALUE,
   PROMOTED_UPPER_KIND_VALUE,
 } from '../piece';
+import { pipe } from '../util';
+import { isKifu, ProcessingState } from './common';
 export const KifToSfen = {
   歩: UPPERCASE_KIND.FU,
   香: UPPERCASE_KIND.KYOSHA,
@@ -76,64 +78,137 @@ function isComment(str: any): str is Comment {
   return !!str.comment;
 }
 
-export function parseKifMove(
-  move: string,
-  prevMove: Move | null,
-): Move | Comment | null {
-  if (move.startsWith('*')) {
-    const comment = move.slice(1).trim();
-    return { comment };
+export function parseKIF(kifStr: string): Kifu {
+  const lines = kifStr
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .filter((v) => v)
+    .map((line) => line.trim());
+  const enhancer = pipe(parseHeader, parseMoves, parseFinishTrigger);
+  const { partialKifu: kifu } = enhancer({ partialKifu: {}, lines });
+
+  if (!isKifu(kifu)) {
+    throw Error('invalid kifu file');
+  } else {
+    return kifu;
   }
-  const horizontalMovePattern = /[１-９][一二三四五六七八九]([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
-  const horizontalMove = move.match(horizontalMovePattern);
-  if (horizontalMove) {
-    const target = horizontalMove[0];
-    const secondChar = target.slice(1, 2) as keyof typeof ChineseNumber;
-    const to = {
-      x: Number(convertZenToHan(target.slice(0, 1))),
-      y: ChineseNumber[secondChar],
-    };
-    const from = {
-      x: Number(target.slice(-2, -1)),
-      y: Number(target.slice(-1)),
-    };
-    const promote = target.slice(-4, -3) === '成';
-    const move = createHorizontalMove({ from, to, promote });
-    return move;
+}
+
+function parseHeader({ lines }: ProcessingState): ProcessingState {
+  const endIndex = lines.findIndex(
+    (line) => line.startsWith('*') || line.startsWith('1'),
+  );
+  if (endIndex === -1) {
+    throw Error('cannot find move start');
   }
-  const horizontalMoveGetBackPattern = /同[ |　]*([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
-  const getBackValue = move.match(horizontalMoveGetBackPattern);
-  if (getBackValue) {
-    if (!prevMove) {
-      throw Error('cannot get back');
-    } else {
-      const target = getBackValue[0];
-      const from = {
-        x: Number(target.slice(-2, -1)),
-        y: Number(target.slice(-1)),
-      };
-      const promote = target.includes('成');
-      const y_axis_key = prevMove.slice(3, 4) as keyof typeof Y_AXIS;
-      const to = { x: Number(prevMove.slice(2, 3)), y: Y_AXIS[y_axis_key] };
-      const move = createHorizontalMove({ from, to, promote });
-      return move;
-    }
-  }
-  const verticalMovePattern = /[１-９][一二三四五六七八九][歩香桂銀金角飛]打/;
-  const verticalMove = move.match(verticalMovePattern);
-  if (verticalMove) {
-    const target = verticalMove[0];
-    const secondChar = target.slice(1, 2) as keyof typeof ChineseNumber;
-    const to = {
-      x: Number(convertZenToHan(target.slice(0, 1))),
-      y: ChineseNumber[secondChar],
-    };
-    const thirdChar = target.slice(2, 3) as keyof typeof KifToSfen;
-    const piece = KifToSfen[thirdChar] as UPPERCASE_KIND_VALUE;
-    const move = createVerticalMove({ to, piece });
-    return move;
-  }
-  return null;
+  const targetLine = lines.slice(0, endIndex);
+  const sente = targetLine.find((line) => line.startsWith('先手'))?.slice(3);
+  const gote = targetLine.find((line) => line.startsWith('後手'))?.slice(3);
+  const header = { sente, gote };
+  return { partialKifu: { header }, lines: lines.slice(endIndex) };
+}
+function parseMoves({ partialKifu, lines }: ProcessingState): ProcessingState {
+  const endIndex = lines.findIndex((line) => line.startsWith('まで'));
+  const targetLine = endIndex > 0 ? lines.slice(0, endIndex) : lines;
+  return {
+    partialKifu: { ...partialKifu, ...parseKifMoves(targetLine) },
+    lines: lines.slice(endIndex),
+  };
+}
+export function parseKifMoves(
+  lines: Array<string>,
+): { boardList: Array<Board>; kifuMoves: Array<KifuMove> } {
+  const board = initBoard();
+  return lines.reduce(
+    (acc, line) =>
+      produce(acc, (draft) => {
+        const lastBoard = draft.boardList[draft.boardList.length - 1];
+        try {
+          // comment
+          if (line.startsWith('*')) {
+            lastBoard.comment = [lastBoard.comment, line.slice(1).trim()]
+              .filter((v) => v)
+              .join('\n');
+            return;
+          }
+          const reflectMove = (sfen: Move) => {
+            const kif = getReadableMove({
+              squareList:
+                draft.boardList[draft.boardList.length - 1].squareList,
+              currentMove: sfen,
+              prevMove: draft.kifuMoves[draft.kifuMoves.length - 1]?.sfen,
+            });
+            draft.kifuMoves.push({ sfen, kif });
+            const newBoard = moveBoard(lastBoard, sfen);
+            draft.boardList.push(newBoard);
+          };
+          // horizontal move
+          const horizontalMovePattern = /[１-９][一二三四五六七八九]([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
+          const horizontalMove = line.match(horizontalMovePattern);
+          if (horizontalMove) {
+            const target = horizontalMove[0];
+            const secondChar = target.slice(1, 2) as keyof typeof ChineseNumber;
+            const to = {
+              x: Number(convertZenToHan(target.slice(0, 1))),
+              y: ChineseNumber[secondChar],
+            };
+            const from = {
+              x: Number(target.slice(-2, -1)),
+              y: Number(target.slice(-1)),
+            };
+            const promote = target.slice(-4, -3) === '成';
+            const move = createHorizontalMove({ from, to, promote });
+            reflectMove(move);
+            return;
+          }
+          // getback
+          const horizontalMoveGetBackPattern = /同[ |　]*([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
+          const getBackValue = line.match(horizontalMoveGetBackPattern);
+          if (getBackValue) {
+            const prevMove = draft.kifuMoves[draft.kifuMoves.length - 1]?.sfen;
+            if (!prevMove) {
+              throw Error('cannot get back');
+            } else {
+              const target = getBackValue[0];
+              const from = {
+                x: Number(target.slice(-2, -1)),
+                y: Number(target.slice(-1)),
+              };
+              const promote = target.includes('成');
+              const y_axis_key = prevMove.slice(3, 4) as keyof typeof Y_AXIS;
+              const to = {
+                x: Number(prevMove.slice(2, 3)),
+                y: Y_AXIS[y_axis_key],
+              };
+              const move = createHorizontalMove({ from, to, promote });
+              reflectMove(move);
+              return;
+            }
+          }
+          //vertical move
+          const verticalMovePattern = /[１-９][一二三四五六七八九][歩香桂銀金角飛]打/;
+          const verticalMove = line.match(verticalMovePattern);
+          if (verticalMove) {
+            const target = verticalMove[0];
+            const secondChar = target.slice(1, 2) as keyof typeof ChineseNumber;
+            const to = {
+              x: Number(convertZenToHan(target.slice(0, 1))),
+              y: ChineseNumber[secondChar],
+            };
+            const thirdChar = target.slice(2, 3) as keyof typeof KifToSfen;
+            const piece = KifToSfen[thirdChar] as UPPERCASE_KIND_VALUE;
+            const move = createVerticalMove({ to, piece });
+            reflectMove(move);
+            return;
+          }
+          return;
+        } catch (e) {
+          throw Error(`Error occured during the parse of the ${line}
+      ${e}`);
+        }
+      }),
+    { boardList: [board], kifuMoves: [] as Array<KifuMove> },
+  );
 }
 
 export function convertZenToHan(str: string): string {
@@ -148,88 +223,25 @@ export function convertHanToZen(str: string): string {
   });
 }
 
-function parseKifHeader(line: string): Header | undefined {
-  if (line.startsWith('先手')) {
-    const sente = line.slice(3);
-    return { sente };
-  } else if (line.startsWith('後手')) {
-    const gote = line.slice(3);
-    return { gote };
+function parseFinishTrigger({
+  partialKifu,
+  lines,
+}: ProcessingState): ProcessingState {
+  const line = lines[0];
+  if (!line) {
+    return { partialKifu, lines };
   }
-  return undefined;
-}
-
-export function parseKIF(kifStr: string): Kifu {
-  const lines = kifStr.replace(/\r\n?/g, '\n').split('\n');
-  const board = initBoard();
-  return lines
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith('#'))
-    .reduce(
-      (acc, line) => {
-        const { boardList, header, kifuMoves, finishTrigger } = acc;
-        if (isHeader(line)) {
-          const newHeader = parseKifHeader(line);
-          if (newHeader) {
-            return { ...acc, header: { ...header, ...newHeader } };
-          }
-          return acc;
-        }
-        // finishTrigger is written once only
-        if (!finishTrigger) {
-          const triggerIfMatch = getFinishTriggerIfMatch(line);
-          if (triggerIfMatch) {
-            return { ...acc, finishTrigger: triggerIfMatch };
-          }
-        }
-        const lastMoveSfen = kifuMoves[kifuMoves.length - 1]?.sfen;
-        const moveOrComment = parseKifMove(line, lastMoveSfen);
-        if (!moveOrComment) {
-          return acc;
-        }
-        const lastBoard = boardList[boardList.length - 1];
-        if (!isComment(moveOrComment)) {
-          const kif = getReadableMove({
-            squareList: lastBoard.squareList,
-            currentMove: moveOrComment,
-            prevMove: lastMoveSfen,
-          });
-          kifuMoves.push({ kif, sfen: moveOrComment });
-          const newBoard = moveBoard(lastBoard, moveOrComment);
-          return { ...acc, boardList: [...boardList, newBoard] };
-        } else {
-          const newComment = lastBoard.comment
-            ? [lastBoard.comment, moveOrComment.comment].join('\n')
-            : moveOrComment.comment;
-          const newBoard = { ...lastBoard, comment: newComment };
-          return {
-            ...acc,
-            boardList: [...boardList.slice(0, boardList.length - 1), newBoard],
-          };
-        }
-      },
-      {
-        boardList: [board],
-        kifuMoves: [] as Array<KifuMove>,
-        header: undefined as Header | undefined,
-        finishTrigger: undefined as FinishTrigger | undefined,
-      },
-    );
-}
-
-function isHeader(line: string): boolean {
-  return ['先手', '後手'].some((keyword) => line.startsWith(keyword));
-}
-
-function getFinishTriggerIfMatch(line: string): FinishTrigger | null {
-  let finishTrigger = null;
+  let finishTrigger = undefined;
   Object.values(FinishTrigger).forEach((trigger) => {
     if (line.includes(trigger)) {
       finishTrigger = trigger;
       return;
     }
   });
-  return finishTrigger;
+  return {
+    partialKifu: { ...partialKifu, finishTrigger },
+    lines: [],
+  };
 }
 
 export function exportKIF(kifu: Kifu): string {

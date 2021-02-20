@@ -16,6 +16,7 @@ import {
   UPPERCASE_KIND_VALUE,
 } from '../piece';
 import { pipe } from '../util';
+import { isKifu, ProcessingState } from './common';
 import {
   ChineseNumber,
   convertZenToHan,
@@ -28,17 +29,11 @@ type X_SPECIFIER = typeof X_SPECIFIER[number];
 const Y_SPECIFIER = ['引', '上', '寄'] as const;
 type Y_SPECIFIER = typeof Y_SPECIFIER[number];
 
-type ProcessingState = {
-  partialKifu: Partial<Kifu>;
-  lines: Array<string>;
-};
-const isKifu = (partialKifu: Partial<Kifu>): partialKifu is Kifu =>
-  !!partialKifu.boardList && !!partialKifu.kifuMoves;
-
 export function parseKi2(ki2Str: string): Kifu {
   const lines = ki2Str
     .replace(/\r\n?/g, '\n')
     .split('\n')
+    .filter((v) => v)
     .map((line) => line.trim());
   const enhancer = pipe(parseHeader, parseMoves);
   const { partialKifu: kifu } = enhancer({ partialKifu: {}, lines });
@@ -48,6 +43,7 @@ export function parseKi2(ki2Str: string): Kifu {
     return kifu;
   }
 }
+
 function parseHeader({ lines }: ProcessingState): ProcessingState {
   const endIndex = lines.findIndex(
     (line) => line.startsWith('▲') || line.startsWith('△'),
@@ -59,8 +55,9 @@ function parseHeader({ lines }: ProcessingState): ProcessingState {
   const sente = targetLine.find((line) => line.startsWith('先手'))?.slice(3);
   const gote = targetLine.find((line) => line.startsWith('後手'))?.slice(3);
   const header = { sente, gote };
-  return { partialKifu: { header }, lines };
+  return { partialKifu: { header }, lines: lines.slice(endIndex) };
 }
+
 function parseMoves({ partialKifu, lines }: ProcessingState): ProcessingState {
   const endIndex = lines.findIndex((line) => line.startsWith('まで'));
   const targetLine = endIndex > 0 ? lines.slice(0, endIndex) : lines;
