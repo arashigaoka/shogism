@@ -85,12 +85,12 @@ export const isKifu = (partialKifu: Partial<Kifu>): partialKifu is Kifu =>
 export function parseAuto(str: string): Kifu {
   const msg = [];
   try {
-    return parseKIF(str);
+    return parseKi2(str);
   } catch (e) {
     msg.push(e);
   }
   try {
-    return parseKi2(str);
+    return parseKIF(str);
   } catch (e) {
     msg.push(e);
   }
