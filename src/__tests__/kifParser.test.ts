@@ -109,6 +109,14 @@ LNSGKGSNL
     const data = parseKIF(text);
     expect(data.kifuMoves.length).toBe(3);
   });
+  test('parse test kif including get back by promoted piece', () => {
+    const text = fs.readFileSync('test/kif/test2.kif', {
+      encoding: 'utf-8',
+    });
+    const data = parseKIF(text);
+    expect(data.kifuMoves.length).toBe(147);
+    expect(data.finishTrigger).toBe(FinishTrigger['投了']);
+  });
   test('throw error when parsing ki2', () => {
     const text = fs.readFileSync('test/ki2/ginga.ki2', { encoding: 'utf-8' });
     const parse = () => parseKIF(text);

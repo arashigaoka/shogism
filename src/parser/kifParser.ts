@@ -82,49 +82,33 @@ export function parseKifMoves(
             const newBoard = moveBoard(lastBoard, sfen);
             draft.boardList.push(newBoard);
           };
+
           // horizontal move
-          const horizontalMovePattern = /[１-９][一二三四五六七八九]([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
-          const horizontalMove = line.match(horizontalMovePattern);
+          const movePattern = /(同|([１-９])([一二三四五六七八九]))[ |　]?([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)(成?)\((\d{2})/;
+          const horizontalMove = line.match(movePattern);
           if (horizontalMove) {
-            const target = horizontalMove[0];
-            const secondChar = target.slice(1, 2) as keyof typeof ChineseNumber;
-            const to = {
-              x: Number(convertZenToHan(target.slice(0, 1))),
-              y: ChineseNumber[secondChar],
-            };
+            const isGetBack = horizontalMove[1] === '同';
+            const prevMove = draft.kifuMoves[draft.kifuMoves.length - 1]?.sfen;
+            if (isGetBack && !prevMove) {
+              throw Error('cannot get back');
+            }
             const from = {
-              x: Number(target.slice(-2, -1)),
-              y: Number(target.slice(-1)),
+              x: Number(horizontalMove[6].slice(0, 1)),
+              y: Number(horizontalMove[6].slice(1, 2)),
             };
-            const promote = target.slice(-4, -3) === '成';
+            const toX = isGetBack
+              ? Number(prevMove.slice(2, 3))
+              : Number(convertZenToHan(horizontalMove[2]));
+            const toY = isGetBack
+              ? Y_AXIS[prevMove.slice(3, 4) as keyof typeof Y_AXIS]
+              : ChineseNumber[horizontalMove[3] as keyof typeof ChineseNumber];
+            const to = { x: toX, y: toY };
+            const promote = horizontalMove[5] === '成';
             const move = createHorizontalMove({ from, to, promote });
             reflectMove(move);
             return;
           }
-          // getback
-          const horizontalMoveGetBackPattern = /同[ |　]*([歩香桂銀金角飛玉王と杏圭全馬竜龍]|成香|成桂|成銀)成?\(\d{2}/;
-          const getBackValue = line.match(horizontalMoveGetBackPattern);
-          if (getBackValue) {
-            const prevMove = draft.kifuMoves[draft.kifuMoves.length - 1]?.sfen;
-            if (!prevMove) {
-              throw Error('cannot get back');
-            } else {
-              const target = getBackValue[0];
-              const from = {
-                x: Number(target.slice(-2, -1)),
-                y: Number(target.slice(-1)),
-              };
-              const promote = target.includes('成');
-              const y_axis_key = prevMove.slice(3, 4) as keyof typeof Y_AXIS;
-              const to = {
-                x: Number(prevMove.slice(2, 3)),
-                y: Y_AXIS[y_axis_key],
-              };
-              const move = createHorizontalMove({ from, to, promote });
-              reflectMove(move);
-              return;
-            }
-          }
+
           //vertical move
           const verticalMovePattern = /[１-９][一二三四五六七八九][歩香桂銀金角飛]打/;
           const verticalMove = line.match(verticalMovePattern);
@@ -141,7 +125,6 @@ export function parseKifMoves(
             reflectMove(move);
             return;
           }
-          return;
         } catch (e) {
           throw Error(`Error occured during the parse of the ${line}
       ${e}`);
