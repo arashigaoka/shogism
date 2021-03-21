@@ -127,6 +127,7 @@ LNSGKGSNL
 describe('export kif', () => {
   test('success', () => {
     const kifu = initKifuFromSfen(
+      'test',
       INITIAL_BOARD.HIRATE,
       '7g7f 3c3d 8h2b+ 3a2b B*4e',
     );

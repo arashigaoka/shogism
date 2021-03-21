@@ -23,6 +23,7 @@ import { convertHanToZen, getChineseNumber, SfenToKif } from '../parser/common';
 import produce from 'immer';
 
 export function initKifuFromSfen(
+  name?: string,
   initialInfo?: {
     squareStr: string;
     turn: string;
@@ -53,9 +54,10 @@ export function initKifuFromSfen(
       },
       [board],
     );
-    return { boardList, kifuMoves: moves, boardEditing };
+    return { name, boardList, kifuMoves: moves, boardEditing };
   }
   return {
+    name,
     boardList: [board],
     kifuMoves: [],
     boardEditing,

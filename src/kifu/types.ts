@@ -5,6 +5,7 @@ export type KifuMove = {
   kif: string;
 };
 export type Kifu = {
+  name?: string;
   boardList: Array<Board>;
   kifuMoves: Array<KifuMove>;
   header?: Header;
