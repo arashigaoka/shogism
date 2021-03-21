@@ -21,6 +21,7 @@ import {
   getDropablePoints,
   canPromote,
   getPromotionPossibility,
+  toHandsStr,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {
@@ -304,6 +305,14 @@ describe('getHands', () => {
     expect(senteExistHands['R']).toBe(undefined);
     expect(goteExistHands['p']).toBe(8);
     expect(goteExistHands['P']).toBe(undefined);
+  });
+});
+
+describe('toHandsStr', () => {
+  test('success', () => {
+    const handsStr = 'KB2G2S2N2L10Pkrb2g2s2n2l8p';
+    const hands = initHands(handsStr);
+    expect(toHandsStr(hands)).toBe(handsStr);
   });
 });
 

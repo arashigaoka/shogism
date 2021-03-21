@@ -312,6 +312,37 @@ export function getExistPieceFromHands(
   return { senteExistHands, goteExistHands };
 }
 
+export function toHandsStr(hands: Hands): string {
+  const keys: Array<keyof Hands> = [
+    'K',
+    'R',
+    'B',
+    'G',
+    'S',
+    'N',
+    'L',
+    'P',
+    'k',
+    'r',
+    'b',
+    'g',
+    's',
+    'n',
+    'l',
+    'p',
+  ];
+  return keys.reduce((acc, value) => {
+    const num = hands[value];
+    if (num > 1) {
+      return acc.concat(num + value);
+    } else if (num === 1) {
+      return acc.concat(value);
+    } else {
+      return acc;
+    }
+  }, '');
+}
+
 export function getMovablePoints(board: Board, point: Point): Array<Point> {
   const piece = selectPiece(board.squareList, point);
   if (piece === '') {
