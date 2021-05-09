@@ -35,15 +35,13 @@ export function parseKIF(kifStr: string): Kifu {
 }
 
 function parseHeader({ lines }: ProcessingState): ProcessingState {
-  const endIndex = lines.findIndex(
-    (line) => line.startsWith('*') || line.startsWith('1'),
-  );
+  const endIndex = lines.findIndex((line) => line.startsWith('手数----指手--'));
   if (endIndex === -1) {
     throw Error('cannot find move start');
   }
   const targetLine = lines.slice(0, endIndex);
-  const sente = targetLine.find((line) => line.startsWith('先手'))?.slice(3);
-  const gote = targetLine.find((line) => line.startsWith('後手'))?.slice(3);
+  const sente = targetLine.find((line) => line.startsWith('先手：'))?.slice(3);
+  const gote = targetLine.find((line) => line.startsWith('後手：'))?.slice(3);
   const header = { sente, gote };
   return { partialKifu: { header }, lines: lines.slice(endIndex) };
 }

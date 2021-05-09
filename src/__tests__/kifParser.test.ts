@@ -37,7 +37,7 @@ describe('parse move', () => {
 describe('parse kif input', () => {
   test('parse kif properly', () => {
     const data = parseKIF(
-      '1 ７六歩(77) (0:01/00:00:01)\n2 ３四歩(33) (0:02/00:00:02)\n3 ２二角成(88) (0:20/00:00:21)\n 4 同　銀(31) (0:03/00:00:05)\n5 ４五角打 (0:39/00:01:00)\n',
+      '手数----指手---------消費時間--\n1 ７六歩(77) (0:01/00:00:01)\n2 ３四歩(33) (0:02/00:00:02)\n3 ２二角成(88) (0:20/00:00:21)\n 4 同　銀(31) (0:03/00:00:05)\n5 ４五角打 (0:39/00:01:00)\n',
     );
     expect(data.kifuMoves.length).toBe(5);
     expect(data.boardList.length).toBe(6);
@@ -57,6 +57,7 @@ LNSGKGSNL
   });
   test('parse kif with comments', () => {
     const data = parseKIF(`
+手数----指手---------消費時間--
 *start
 *start2
 1 ７六歩(77)   ( 0:02/00:00:02)+

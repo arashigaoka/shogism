@@ -34,4 +34,11 @@ T6
     };
     expect(parse).toThrow();
   });
+  test('shogi extend', () => {
+    const text = fs.readFileSync('test/kif/shogi-extend.kif', {
+      encoding: 'utf-8',
+    });
+    const data = parseAuto(text);
+    expect(data.header?.sente).toBe('arashigaoka 六段');
+  });
 });
