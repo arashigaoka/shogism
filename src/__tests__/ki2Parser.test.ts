@@ -139,4 +139,11 @@ describe('parse ki2', () => {
     };
     expect(parse).toThrow();
   });
+  test('parse long ki2', () => {
+    const text = fs.readFileSync('test/ki2/long.ki2', {
+      encoding: 'utf-8',
+    });
+    const data = parseKi2(text);
+    expect(data.kifuMoves.length).toBe(113);
+  });
 });

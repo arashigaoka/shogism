@@ -154,12 +154,10 @@ const MOVABLE_RELATIVE_POSITIONS_PROMOTED: {
   ],
   [PROMOTED_UPPER_KIND.RYU]: [
     ...MOVABLE_RELATIVE_POSITIONS_RAW[UPPERCASE_KIND.FI],
-    [
-      [1, 1],
-      [1, -1],
-      [-1, 1],
-      [-1, -1],
-    ],
+    [[1, 1]],
+    [[1, -1]],
+    [[-1, 1]],
+    [[-1, -1]],
   ],
 };
 
