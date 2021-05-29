@@ -4,7 +4,13 @@ import {
   isUpperPiece,
   turnOver,
 } from '../piece';
-import { initBoard, moveBoard, getPointFromSfen, selectPiece } from '../board';
+import {
+  initBoard,
+  moveBoard,
+  getPointFromSfen,
+  selectPiece,
+  toPrettierString,
+} from '../board';
 import {
   isMove,
   isVerticalMove,
@@ -13,14 +19,11 @@ import {
   SquareList,
 } from '../board/types';
 import { Kifu, KifuMove } from './types';
-import {
-  convertHanToZen,
-  getChineseNumber,
-  SfenToKif,
-} from '../parser/kifuParser';
+import { convertHanToZen, getChineseNumber, SfenToKif } from '../parser/common';
 import produce from 'immer';
 
 export function initKifuFromSfen(
+  name?: string,
   initialInfo?: {
     squareStr: string;
     turn: string;
@@ -51,9 +54,10 @@ export function initKifuFromSfen(
       },
       [board],
     );
-    return { boardList, kifuMoves: moves, boardEditing };
+    return { name, boardList, kifuMoves: moves, boardEditing };
   }
   return {
+    name,
     boardList: [board],
     kifuMoves: [],
     boardEditing,
@@ -83,7 +87,10 @@ export function getReadableMove({
     const toPoint = getPointFromSfen(toSfen);
     const piece = selectPiece(squareList, fromPoint);
     if (!piece) {
-      throw Error('invalid Kifu');
+      throw Error(`from_point is 'x: ${fromPoint.x} y: ${
+        fromPoint.y
+      } ', but there is  no piece
+${toPrettierString(squareList)}`);
     }
     const UpperPiece = isUpperPiece(piece)
       ? piece

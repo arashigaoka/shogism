@@ -70,6 +70,7 @@ export const PROMOTED_UPPER_KIND = {
   UMA: '+B',
   RYU: '+R',
 } as const;
+export type PROMOTED_UPPER_KIND_VALUE = typeof PROMOTED_UPPER_KIND[keyof typeof PROMOTED_UPPER_KIND];
 
 export type PROMOTED_KIND_VALUE = `+${PROMOTABLE_KIND_VALUE}`;
 
@@ -111,12 +112,12 @@ export function getChangeablePiece(piece: Piece): Array<Piece> {
     : kindValue;
   if (isPromotableKindValue(lowerKindValue)) {
     return [
-      lowerKindValue,
       turnOver(lowerKindValue),
-      promote(lowerKindValue),
       promote(turnOver(lowerKindValue) as KIND_VALUE),
+      lowerKindValue,
+      promote(lowerKindValue),
     ];
   } else {
-    return [lowerKindValue, turnOver(lowerKindValue)];
+    return [turnOver(lowerKindValue), lowerKindValue];
   }
 }

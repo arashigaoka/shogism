@@ -26,6 +26,7 @@ import {
   isVerticalMove,
   Move,
   Point,
+  PROMOTION_POSSIBLITY,
   SfenPointSelector,
   SquareList,
   VerticalMove,
@@ -163,6 +164,7 @@ export function moveBoard(
   boardEditing = false,
 ): Board {
   return produce(board, (draftBoard) => {
+    draftBoard.comment = undefined;
     if (!boardEditing) {
       draftBoard.isSenteTurn = !board.isSenteTurn;
     }
@@ -282,9 +284,9 @@ export function createVerticalMove({
   }
 }
 
-export function promoteOrFlipPieceOnSquareList(
+export function overwritePieceOnSquareList(
   board: Board,
-  newState: Piece,
+  newState: Piece | '',
   position: number,
 ): Board {
   return produce(board, (draftBoard) => {
@@ -308,6 +310,37 @@ export function getExistPieceFromHands(
       {} as Partial<Hands>,
     );
   return { senteExistHands, goteExistHands };
+}
+
+export function toHandsStr(hands: Hands): string {
+  const keys: Array<keyof Hands> = [
+    'K',
+    'R',
+    'B',
+    'G',
+    'S',
+    'N',
+    'L',
+    'P',
+    'k',
+    'r',
+    'b',
+    'g',
+    's',
+    'n',
+    'l',
+    'p',
+  ];
+  return keys.reduce((acc, value) => {
+    const num = hands[value];
+    if (num > 1) {
+      return acc.concat(num + value);
+    } else if (num === 1) {
+      return acc.concat(value);
+    } else {
+      return acc;
+    }
+  }, '');
 }
 
 export function getMovablePoints(board: Board, point: Point): Array<Point> {
@@ -402,5 +435,43 @@ export function canPromote(piece: Piece, index: number): boolean {
     return point.y >= 7;
   } else {
     return point.y <= 3;
+  }
+}
+
+const relyCanPromote = (piece: Piece, index: number) => {
+  return canPromote(piece, index)
+    ? PROMOTION_POSSIBLITY.POSSIBLE
+    : PROMOTION_POSSIBLITY.IMPOSSIBLE;
+};
+export function getPromotionPossibility(
+  piece: Piece,
+  index: number,
+): PROMOTION_POSSIBLITY {
+  const mustPromotePiecesOnFirstRow = ['p', 'l', 'n', 'P', 'L', 'N'];
+  const mustPromotePiecesOnSecondRow = ['n', 'N'];
+  if (!mustPromotePiecesOnFirstRow.includes(piece)) {
+    return relyCanPromote(piece, index);
+  }
+  const point: Point = getPointFromIndex(index);
+  if (mustPromotePiecesOnSecondRow.includes(piece)) {
+    if (piece === 'n') {
+      return point.y >= 8
+        ? PROMOTION_POSSIBLITY.MUST
+        : relyCanPromote(piece, index);
+    } else {
+      return point.y <= 2
+        ? PROMOTION_POSSIBLITY.MUST
+        : relyCanPromote(piece, index);
+    }
+  }
+  // mustPromotePiecesOnFirstRow
+  if (isLowerCaseKindValue(piece)) {
+    return point.y === 9
+      ? PROMOTION_POSSIBLITY.MUST
+      : relyCanPromote(piece, index);
+  } else {
+    return point.y === 1
+      ? PROMOTION_POSSIBLITY.MUST
+      : relyCanPromote(piece, index);
   }
 }

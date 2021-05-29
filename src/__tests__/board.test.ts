@@ -3,10 +3,11 @@ import {
   isHorizontalMove,
   isSfenPointSelector,
   isVerticalMove,
+  PROMOTION_POSSIBLITY,
 } from '../board/types';
 import {
   createVerticalMove,
-  promoteOrFlipPieceOnSquareList,
+  overwritePieceOnSquareList,
   initSquare,
   toPrettierString,
   selectPiece,
@@ -19,6 +20,8 @@ import {
   getMovablePoints,
   getDropablePoints,
   canPromote,
+  getPromotionPossibility,
+  toHandsStr,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {
@@ -174,6 +177,11 @@ LNSGKGSNL
     const newBoard = moveBoard(board, 'B*1a', true);
     expect(newBoard.isSenteTurn).toBeTruthy();
   });
+  test('should not copy comment', () => {
+    const board = { ...initBoard(INITIAL_BOARD.HIRATE), comment: 'test' };
+    const newBoard = moveBoard(board, '7g7f');
+    expect(newBoard.comment).toBe(undefined);
+  });
 });
 
 describe('toSquareStr', () => {
@@ -270,11 +278,16 @@ describe('isMove', () => {
     expect(isVerticalMove(str)).toBeFalsy();
   });
 });
-describe('promoteOrFlipPieceOnSquareList', () => {
+describe('overwritePieceOnSquareList', () => {
   test('success', () => {
     const board = initBoard(INITIAL_BOARD.HIRATE);
-    const newBoard = promoteOrFlipPieceOnSquareList(board, '+L', 0);
+    const newBoard = overwritePieceOnSquareList(board, '+L', 0);
     expect(newBoard.squareList[0]).toBe('+L');
+  });
+  test('can overwrite empty', () => {
+    const board = initBoard(INITIAL_BOARD.HIRATE);
+    const newBoard = overwritePieceOnSquareList(board, '', 0);
+    expect(newBoard.squareList[0]).toBe('');
   });
 });
 
@@ -292,6 +305,14 @@ describe('getHands', () => {
     expect(senteExistHands['R']).toBe(undefined);
     expect(goteExistHands['p']).toBe(8);
     expect(goteExistHands['P']).toBe(undefined);
+  });
+});
+
+describe('toHandsStr', () => {
+  test('success', () => {
+    const handsStr = 'KB2G2S2N2L10Pkrb2g2s2n2l8p';
+    const hands = initHands(handsStr);
+    expect(toHandsStr(hands)).toBe(handsStr);
   });
 });
 
@@ -440,5 +461,39 @@ describe('can promote', () => {
     expect(canPromote('B', 28)).toBeFalsy();
     expect(canPromote('+L', 12)).toBeFalsy();
     expect(canPromote('K', 12)).toBeFalsy();
+  });
+});
+
+describe('get promotion possibility', () => {
+  test('possible', () => {
+    expect(getPromotionPossibility('B', 12)).toBe(
+      PROMOTION_POSSIBLITY.POSSIBLE,
+    );
+    expect(getPromotionPossibility('P', 9)).toBe(PROMOTION_POSSIBLITY.POSSIBLE);
+    expect(getPromotionPossibility('N', 18)).toBe(
+      PROMOTION_POSSIBLITY.POSSIBLE,
+    );
+  });
+  test('must', () => {
+    expect(getPromotionPossibility('P', 1)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('p', 80)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('L', 1)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('l', 80)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('N', 9)).toBe(PROMOTION_POSSIBLITY.MUST);
+    expect(getPromotionPossibility('n', 71)).toBe(PROMOTION_POSSIBLITY.MUST);
+  });
+  test('impossible', () => {
+    expect(getPromotionPossibility('P', 80)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
+    expect(getPromotionPossibility('L', 40)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
+    expect(getPromotionPossibility('l', 40)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
+    expect(getPromotionPossibility('N', 27)).toBe(
+      PROMOTION_POSSIBLITY.IMPOSSIBLE,
+    );
   });
 });
