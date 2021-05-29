@@ -1,8 +1,8 @@
 {
   "name": "shogism",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "shogi useful library",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
     "start": "yarn build:live",
     "build": "tsc -p .",
