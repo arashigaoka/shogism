@@ -4,6 +4,7 @@
   "description": "shogi useful library",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "files": ["lib"],
   "scripts": {
     "start": "yarn build:live",
     "build": "tsc -p .",
