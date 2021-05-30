@@ -4,7 +4,7 @@ import {
   UPPERCASE_KIND,
   UPPERCASE_KIND_VALUE,
 } from '..';
-import { Kifu } from '../kifu/types';
+import { Kifu } from '../kifu';
 import { parseKi2 } from './ki2Parser';
 import { parseKIF } from './kifParser';
 

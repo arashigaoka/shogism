@@ -1,5 +1,9 @@
-import { initBoard, initSquare, toPrettierString } from '../board';
-import { INITIAL_BOARD } from '../board/types';
+import {
+  initBoard,
+  initSquare,
+  toPrettierString,
+  INITIAL_BOARD,
+} from '../board';
 import {
   getFirstIndexOfMatchedBoard,
   getReadableMove,

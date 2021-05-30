@@ -5,10 +5,12 @@ import {
   getPointFromIndex,
   initBoard,
   moveBoard,
+  Board,
+  Move,
+  Point,
+  Y_AXIS,
 } from '../board';
-import { Board, Move, Point, Y_AXIS } from '../board/types';
-import { getReadableMove } from '../kifu';
-import { Kifu, KifuMove } from '../kifu/types';
+import { getReadableMove, Kifu, KifuMove } from '../kifu';
 import {
   isUpperCaseKindValue,
   LOWERCASE_KIND_VALUE,

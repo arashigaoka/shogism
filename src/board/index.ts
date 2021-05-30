@@ -34,6 +34,8 @@ import {
   Y_AXIS,
 } from './types';
 
+export * from './types';
+
 export function initSquare(sfen: string): SquareList {
   const board = sfen
     .split('')

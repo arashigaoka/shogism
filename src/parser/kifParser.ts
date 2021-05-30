@@ -4,10 +4,17 @@ import {
   createVerticalMove,
   initBoard,
   moveBoard,
+  Board,
+  Move,
+  Y_AXIS,
 } from '../board';
-import { Board, Move, Y_AXIS } from '../board/types';
-import { getReadableMove } from '../kifu';
-import { FinishTrigger, Header, Kifu, KifuMove } from '../kifu/types';
+import {
+  getReadableMove,
+  FinishTrigger,
+  Header,
+  Kifu,
+  KifuMove,
+} from '../kifu';
 import { UPPERCASE_KIND_VALUE } from '../piece';
 import { pipe } from '../util';
 import {
