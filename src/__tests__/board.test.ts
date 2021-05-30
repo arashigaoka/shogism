@@ -1,11 +1,4 @@
 import {
-  INITIAL_BOARD,
-  isHorizontalMove,
-  isSfenPointSelector,
-  isVerticalMove,
-  PROMOTION_POSSIBLITY,
-} from '../board/types';
-import {
   createVerticalMove,
   overwritePieceOnSquareList,
   initSquare,
@@ -22,6 +15,11 @@ import {
   canPromote,
   getPromotionPossibility,
   toHandsStr,
+  INITIAL_BOARD,
+  isHorizontalMove,
+  isSfenPointSelector,
+  isVerticalMove,
+  PROMOTION_POSSIBLITY,
 } from '../index';
 describe('squareList', () => {
   test('initialize squareList', () => {

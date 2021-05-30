@@ -1,6 +1,6 @@
 import { parseAuto } from '../parser/common';
 import fs from 'fs';
-import { FinishTrigger } from '../kifu/types';
+import { FinishTrigger } from '../kifu';
 
 describe('parse automatically', () => {
   test('parse kif', () => {

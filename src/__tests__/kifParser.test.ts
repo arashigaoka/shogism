@@ -1,9 +1,7 @@
-import { toPrettierString } from '../board';
-import { FinishTrigger } from '../kifu/types';
+import { toPrettierString, INITIAL_BOARD } from '../board';
+import { initKifuFromSfen, FinishTrigger } from '../kifu';
 import { exportKIF, parseKIF, parseKifMoves } from '../parser/kifParser';
 import fs from 'fs';
-import { initKifuFromSfen } from '../kifu';
-import { INITIAL_BOARD } from '../board/types';
 
 describe('parse move', () => {
   test('parse kif moves', () => {

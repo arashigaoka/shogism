@@ -10,17 +10,17 @@ import {
   getPointFromSfen,
   selectPiece,
   toPrettierString,
-} from '../board';
-import {
   isMove,
   isVerticalMove,
   Move,
   SfenPointSelector,
   SquareList,
-} from '../board/types';
+} from '../board';
 import { Kifu, KifuMove } from './types';
 import { convertHanToZen, getChineseNumber, SfenToKif } from '../parser/common';
 import produce from 'immer';
+
+export * from './types';
 
 export function initKifuFromSfen(
   name?: string,

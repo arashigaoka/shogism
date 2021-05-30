@@ -1,4 +1,4 @@
-import { Board, Move } from '../board/types';
+import { Board, Move } from '../board';
 
 export type KifuMove = {
   sfen: Move;
